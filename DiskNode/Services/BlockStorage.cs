@@ -19,25 +19,31 @@ public class BlockStorage
     {
         path = config["DiskNode:Path"];
         var totalSize = int.Parse(config["DiskNode:TotalSizeMB"]) * 1024;
-        int blockSize = int.Parse(config["DiskNode:BlockSizeKB"]) * 1024;
-        blockLimit = totalSize / blockSize;
+
+        this.blockSize = int.Parse(config["DiskNode:BlockSizeKB"]) * 1024;
+        this.blockLimit = totalSize / blockSize;
 
         Directory.CreateDirectory(path);
     }
 
-    private string GetBlockPath(long index)=> Path.Combine(path, $"block_{index:DB}.bin");
+    private string GetBlockPath(long index)=> Path.Combine(path, $"block_{index:D8}.bin");
 
     public async Task WriteAsync(long index, Stream source, CancellationToken cancellationToken)        // Method to write a block of data to the storage
     {
-        if(index >= blockLimit)
+        if (index >= blockLimit)
         {
-            throw new ArgumentOutOfRangeException(nameof(index), "Se alcanzo el maximo total");          
+            throw new ArgumentOutOfRangeException(nameof(index), "The limit was reached");          
+        }
+
+        if (index < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index), "The index can't be negative");
         }
 
         await using var fileToSeek = new FileStream(GetBlockPath(index), FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
 
         cancellationToken.ThrowIfCancellationRequested();
-        await source.CopyToAsync(fileToSeek, cancellationToken);
+        await source.CopyToAsync(fileToSeek, 81920, cancellationToken);
 
     }
 

@@ -11,18 +11,18 @@ namespace DiskNode.Controllers
     {
         private readonly BlockStorage storage;
 
-        BlocksController(BlockStorage _storage)
+        public BlocksController(BlockStorage _storage)
         {
             storage = _storage;
         }
 
-        [HttpPut("{index:long")]        // Match PUT requests with a long index parameter
+        [HttpPut("{index:long}")]        // Match PUT requests with a long index parameter
         public async Task<IActionResult> Put(long index)
         {
             var ContentLength = Request.ContentLength;        
             var expectedSize = storage.GetBlockSize();        
 
-            if (ContentLength is null && ContentLength != expectedSize)
+            if (ContentLength == null && ContentLength != expectedSize)
             {
                 return BadRequest($"The size of the block has to be {expectedSize} KB.");  // Validate content length against expected block size
             }
