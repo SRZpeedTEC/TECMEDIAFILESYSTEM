@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DiskNode")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ac83c32f1b0957c1ca6cb41ddaeef8dd248dd40d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d946c07c4e53fd5cc63cb0385ba575a500e5529d")]
 [assembly: System.Reflection.AssemblyProductAttribute("DiskNode")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DiskNode")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
