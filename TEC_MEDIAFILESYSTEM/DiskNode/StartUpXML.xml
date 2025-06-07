@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<settings>
+	<DiskNode>
+		
+		// parameters for the disk node
+
+		<Port>1234</Port>
+		<Path>../DiskNode/Storage</Path>
+		<TotalSizeMB>50</TotalSizeMB>
+		<BlockSizeKB>64</BlockSizeKB>	
+		
+	</DiskNode>
+	
+</settings>
