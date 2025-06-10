@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Collections.Generic;
+using ControllerNode.Models;
 
 public class StorageNode
 {
@@ -14,25 +15,7 @@ public class StorageNode
     }
 }
 
-public class BlockRef
-{
-    public string FileName;
-    public int BlockNumber;    // Índice de bloque de datos en el archivo (0,1,2,...)
-    public int StripeIndex;    // Índice de franja (stripe) dentro del archivo
-    public bool IsParity;      // Indicador de bloque de paridad
-    public int NodeIndex;      // Nodo donde se almacena el bloque
-    public int NodeBlockIndex; // Posición (índice) dentro de la lista de bloques del nodo
 
-    public BlockRef(string fileName, int blockNum, int stripe, bool isParity, int nodeIdx, int nodeBlockIdx)
-    {
-        FileName = fileName;
-        BlockNumber = blockNum;
-        StripeIndex = stripe;
-        IsParity = isParity;
-        NodeIndex = nodeIdx;
-        NodeBlockIndex = nodeBlockIdx;
-    }
-}
 
 public class ControllerNodeProject
 {
