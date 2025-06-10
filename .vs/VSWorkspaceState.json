@@ -1,10 +1,13 @@
 {
   "ExpandedNodes": [
     "",
+    "\\ControllerNode",
     "\\DiskNode",
     "\\DiskNode\\Controllers",
+    "\\DiskNode\\Properties",
+    "\\DiskNode\\Services",
     "\\TEC_MEDIAFILESYSTEM"
   ],
-  "SelectedNode": "\\DiskNode\\Controllers\\BlocksController.cs",
+  "SelectedNode": "\\TEC_MEDIAFILESYSTEM\\TEC_MEDIAFILESYSTEM.sln",
   "PreviewInSolutionExplorer": false
 }
