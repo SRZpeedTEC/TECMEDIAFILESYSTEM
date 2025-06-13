@@ -80,6 +80,7 @@
             Controls.Add(button2);
             Controls.Add(button1);
             Name = "ControllerNodeVista";
+            Load += ControllerNodeVista_Load;
             ResumeLayout(false);
             PerformLayout();
         }

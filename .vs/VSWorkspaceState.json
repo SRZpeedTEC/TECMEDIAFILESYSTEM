@@ -1,13 +1,6 @@
 {
   "ExpandedNodes": [
-    "",
-    "\\ControllerNode",
-    "\\DiskNode",
-    "\\DiskNode\\Controllers",
-    "\\DiskNode\\Properties",
-    "\\DiskNode\\Services",
-    "\\TEC_MEDIAFILESYSTEM"
+    ""
   ],
-  "SelectedNode": "\\TEC_MEDIAFILESYSTEM\\TEC_MEDIAFILESYSTEM.sln",
   "PreviewInSolutionExplorer": false
 }

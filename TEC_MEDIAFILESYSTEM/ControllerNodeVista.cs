@@ -6,5 +6,10 @@ namespace TEC_MEDIAFILESYSTEM
         {
             InitializeComponent();
         }
+
+        private void ControllerNodeVista_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
