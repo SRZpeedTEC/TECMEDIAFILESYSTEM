@@ -1,6 +1,15 @@
-﻿namespace DiskNode
-{
-    public class disk3
-    {
-    }
-}
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<settings>
+    <DiskNode>
+
+        // parameters for the disk node
+
+        <Port>4567</Port>
+        <Path>../DiskNode3/Storage</Path>
+        <TotalSizeMB>50</TotalSizeMB>
+        <BlockSizeKB>64</BlockSizeKB>
+
+    </DiskNode>
+
+</settings>
