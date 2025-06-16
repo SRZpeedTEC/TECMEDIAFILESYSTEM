@@ -54,8 +54,9 @@
             // 
             // btnBuscar
             // 
-            btnBuscar.BackColor = Color.SteelBlue;
+            btnBuscar.BackColor = ColorTranslator.FromHtml("#A5D6A7");
             btnBuscar.ForeColor = Color.Black;
+
             btnBuscar.Location = new Point(350, 88);
             btnBuscar.Name = "btnBuscar";
             btnBuscar.Size = new Size(100, 34);
@@ -66,8 +67,8 @@
             // 
             // btnAgregar
             // 
-            btnAgregar.BackColor = Color.SkyBlue;
-            btnAgregar.ForeColor = Color.Black;
+            btnAgregar.BackColor = ColorTranslator.FromHtml("#42A5F5");
+            btnAgregar.ForeColor = Color.White;
             btnAgregar.Location = new Point(650, 140);
             btnAgregar.Name = "btnAgregar";
             btnAgregar.Size = new Size(200, 50);
@@ -78,8 +79,9 @@
             // 
             // btnEliminar
             // 
-            btnEliminar.BackColor = Color.SkyBlue;
+            btnEliminar.BackColor = ColorTranslator.FromHtml("#A5D6A7");
             btnEliminar.ForeColor = Color.Black;
+
             btnEliminar.Location = new Point(650, 210);
             btnEliminar.Name = "btnEliminar";
             btnEliminar.Size = new Size(200, 50);
@@ -90,8 +92,9 @@
             // 
             // btnDescargar
             // 
-            btnDescargar.BackColor = Color.SkyBlue;
-            btnDescargar.ForeColor = Color.Black;
+            btnDescargar.BackColor = ColorTranslator.FromHtml("#42A5F5");
+            btnDescargar.ForeColor = Color.White;
+
             btnDescargar.Location = new Point(650, 280);
             btnDescargar.Name = "btnDescargar";
             btnDescargar.Size = new Size(200, 50);
@@ -102,7 +105,8 @@
             // 
             // btnRefrescar
             // 
-            btnRefrescar.BackColor = Color.SteelBlue;
+            btnRefrescar.BackColor = ColorTranslator.FromHtml("#A5D6A7");
+            btnRefrescar.ForeColor = Color.Black;
             btnRefrescar.Location = new Point(470, 88);
             btnRefrescar.Name = "btnRefrescar";
             btnRefrescar.Size = new Size(120, 34);
@@ -113,7 +117,8 @@
             // 
             // lstPdfs
             // 
-            lstPdfs.BackColor = SystemColors.ControlLight;
+            lstPdfs.BackColor = Color.White;
+            lstPdfs.ForeColor = ColorTranslator.FromHtml("#263238");
             lstPdfs.FormattingEnabled = true;
             lstPdfs.ItemHeight = 25;
             lstPdfs.Location = new Point(30, 140);
@@ -128,8 +133,10 @@
             // 
             lblTitulo.AutoSize = true;
             lblTitulo.CausesValidation = false;
-            lblTitulo.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
-            lblTitulo.ForeColor = Color.Blue;
+            lblTitulo.ForeColor = ColorTranslator.FromHtml("#0D47A1");
+            lblTitulo.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
+            lblTitulo.TextAlign = ContentAlignment.TopCenter;
+
             lblTitulo.Location = new Point(350, 9);
             lblTitulo.Name = "lblTitulo";
             lblTitulo.Size = new Size(203, 30);
@@ -142,7 +149,7 @@
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = SystemColors.GradientActiveCaption;
+            BackColor = ColorTranslator.FromHtml("#E3F2FD");
             ClientSize = new Size(1026, 673);
             Controls.Add(lblTitulo);
             Controls.Add(txtBuscar);
