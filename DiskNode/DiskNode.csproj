@@ -14,4 +14,11 @@
     <Folder Include="Storage\" />
   </ItemGroup>
 
+  <ItemGroup>
+  <None Include="StartUpXML.xml">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+  </None>
+</ItemGroup>
+
+
 </Project>

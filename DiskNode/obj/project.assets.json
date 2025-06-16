@@ -590,23 +590,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Santiago\\.nuget\\packages\\": {},
+    "C:\\Users\\Usuario\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Santiago\\Desktop\\Universidad\\Datos II\\Repositorios\\TECMEDIAFILESYSTEM\\DiskNode\\DiskNode.csproj",
+      "projectUniqueName": "C:\\Users\\Usuario\\OneDrive - Estudiantes ITCR\\Documentos\\GitHub\\TECMEDIAFILESYSTEM\\DiskNode\\DiskNode.csproj",
       "projectName": "DiskNode",
-      "projectPath": "C:\\Users\\Santiago\\Desktop\\Universidad\\Datos II\\Repositorios\\TECMEDIAFILESYSTEM\\DiskNode\\DiskNode.csproj",
-      "packagesPath": "C:\\Users\\Santiago\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Santiago\\Desktop\\Universidad\\Datos II\\Repositorios\\TECMEDIAFILESYSTEM\\DiskNode\\obj\\",
+      "projectPath": "C:\\Users\\Usuario\\OneDrive - Estudiantes ITCR\\Documentos\\GitHub\\TECMEDIAFILESYSTEM\\DiskNode\\DiskNode.csproj",
+      "packagesPath": "C:\\Users\\Usuario\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Usuario\\OneDrive - Estudiantes ITCR\\Documentos\\GitHub\\TECMEDIAFILESYSTEM\\DiskNode\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\Santiago\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Usuario\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],

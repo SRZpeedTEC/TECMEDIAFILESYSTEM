@@ -65,7 +65,7 @@ public class ControllerNodeProject
         int totalBytes = contentBytes.Length;
 
         // Calcular número de bloques de datos necesarios, padding si no encaja exactamente
-        int totalDataBlocks = (totalBytes + blockSize - 1) / blockSize; // ceil division
+        int totalDataBlocks = (totalBytes + blockSize - 1) / blockSize; 
         int paddingBytes = totalDataBlocks * blockSize - totalBytes;
         if (paddingBytes > 0)
         {
@@ -265,7 +265,7 @@ public class ControllerNodeProject
         Console.WriteLine(">> Nodo 0 simulado como FUERA DE LÍNEA.");
         // Recuperar documento con un nodo caído (usará reconstrucción XOR)
         string contenidoRecuperado2 = GetDocument(file);
-        Console.WriteLine($"Contenido recuperado con nodo0 off-line: \"{contenidoRecuperado2}\"");
+        Console.WriteLine($"Contenido recuperado con nodo 0 off-line: \"{contenidoRecuperado2}\"");
         // Restaurar nodo 0
         nodes[0].IsOnline = true;
         // Eliminar documento

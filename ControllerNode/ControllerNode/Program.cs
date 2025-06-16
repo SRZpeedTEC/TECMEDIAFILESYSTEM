@@ -13,14 +13,16 @@ namespace ControllerNode
         ///  The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        static async Task Main() // Cambiar el tipo de retorno a Task y agregar el modificador async
         {
             AllocConsole(); // Crea y muestra la consola
 
-            ControllerNodeProject controller = new ControllerNodeProject();
+            var processes = DiskNodeLauncher.StartAllDiskNodes();
+            await Task.Delay(2000);             // opcional: espera a que arranquen
+            var controller = new ControllerNodeHTTPS();
             controller.Test();
+            DiskNodeLauncher.StopAllDiskNodes(processes);
 
-            // Para personalizar configuraciones de la aplicación (DPI, fuente, etc.)
             ApplicationConfiguration.Initialize();
             Application.Run(new Form1());
         }
