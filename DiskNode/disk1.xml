@@ -5,7 +5,7 @@
 
 		<!-- parámetros del nodo -->
 
-		<Port>5004</Port>
+		<Port>1234</Port>
 		<Path>../DiskNode1/Storage</Path>
 		<TotalSizeMB>50</TotalSizeMB>
 		<BlockSizeKB>64</BlockSizeKB>

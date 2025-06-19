@@ -1,10 +1,10 @@
-﻿using System;
-using System.Text;
+﻿using ControllerNode.Models;
+using ControllerNode.Interfaces;
+using ControllerNode.StorageNodes;
+using ControllerNode.Services;
+using Microsoft.Extensions.Configuration;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using ControllerNode.Interfaces;
-using ControllerNode.Services;
-using ControllerNode.StorageNodes;
 
 namespace ControllerNode
 {
@@ -16,45 +16,35 @@ namespace ControllerNode
         [STAThread]
         static async Task Main()
         {
-            AllocConsole(); // Habilita consola para depurar
+            AllocConsole();
 
-            // ====== Configuración base ======
-            int blockSize = 4;
+            // Leer configuración
+            var config = new ConfigurationBuilder()
+                .AddJsonFile("nodes.config.json", optional: false)
+                .Build();
 
-            // Crear nodos en memoria
-            var nodes = Enumerable.Range(0, 4)
-                                  .Select(i => (IStorageNode)new InMemoryStorageNode(i))
-                                  .ToArray();
+            int blockSize = config.GetValue<int>("BlockSize");
+            var nodeInfos = config.GetSection("Nodes").Get<List<NodeInfo>>()!;
 
-            // Instanciar servicio RAID
+            var httpClient = new HttpClient();
+            var nodes = nodeInfos
+                .Select(info => new RemoteStorageNode(info.Id, info.Url, blockSize, httpClient))
+                .Cast<IStorageNode>()
+                .ToArray();
+
             var controller = new ControllerService(nodes, blockSize);
 
-            // ====== Prueba de integración mínima ======
-            string fileName = "Documento1";
-            string contenido = "Hola, este es un archivo de prueba para RAID5.";
-            byte[] datos = Encoding.UTF8.GetBytes(contenido);
+            // Demo: subir un PDF y recuperarlo
+            byte[] pdf = File.ReadAllBytes("demo.pdf");
+            await controller.AddDocumentAsync("demo", pdf);
+            Console.WriteLine("✔ Documento subido.");
 
-            await controller.AddDocumentAsync(fileName, datos);
-            Console.WriteLine("[✔] Archivo agregado");
+            byte[]? reconstruido = await controller.GetDocumentAsync("demo");
+            File.WriteAllBytes("demo_recuperado.pdf", reconstruido!);
+            Console.WriteLine("✔ Documento recuperado.");
 
-            var resultado = await controller.GetDocumentAsync(fileName);
-            Console.WriteLine("[✔] Recuperado: " + Encoding.UTF8.GetString(resultado));
-
-            ((InMemoryStorageNode)nodes[0]).Online = false;
-            Console.WriteLine("[!] Nodo 0 OFFLINE");
-
-            var recuperado2 = await controller.GetDocumentAsync(fileName);
-            Console.WriteLine("[✔] Con nodo caído: " + Encoding.UTF8.GetString(recuperado2));
-
-            await controller.RemoveDocumentAsync(fileName);
-            Console.WriteLine("[✔] Archivo eliminado");
-
-            var resultado3 = await controller.GetDocumentAsync(fileName);
-            Console.WriteLine(resultado3 == null ? "[✔] Ya no existe el archivo" : "[X] El archivo aún existe");
-
-            // ====== Inicializar UI (aunque aún no se use) ======
             ApplicationConfiguration.Initialize();
-            Application.Run(new Form1());  // ← aquí irá la interfaz real más adelante
+            Application.Run(new Form1());
         }
     }
 }
