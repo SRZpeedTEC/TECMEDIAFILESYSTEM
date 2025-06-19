@@ -6,9 +6,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Include="disk3.xml" />
-  </ItemGroup>
+	<ItemGroup>
+		<!-- Incluye TODOS los disk*.xml como “None”, no como “Compile” -->
+		<None Include="disk*.xml">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration.Xml" Version="9.0.5" />

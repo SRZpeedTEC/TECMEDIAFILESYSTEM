@@ -3,7 +3,7 @@
 <settings>
 	<DiskNode>
 
-		// parameters for the disk node
+		<!-- parámetros del nodo -->
 
 		<Port>5004</Port>
 		<Path>../DiskNode1/Storage</Path>

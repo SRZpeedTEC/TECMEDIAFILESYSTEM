@@ -18,7 +18,7 @@ public class BlockStorage
     public BlockStorage(IConfiguration config)      // Constructor that initializes the storage path and block size from configuration
     {
         path = config["DiskNode:Path"];
-        var totalSize = int.Parse(config["DiskNode:TotalSizeMB"]) * 1024;
+        var totalSize = int.Parse(config["DiskNode:TotalSizeMB"]) * 1024 * 1024;
 
         this.blockSize = int.Parse(config["DiskNode:BlockSizeKB"]) * 1024;
         this.blockLimit = totalSize / blockSize;

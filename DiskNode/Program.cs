@@ -1,4 +1,4 @@
-
+﻿
 using DiskNode.Services;
 
 {
@@ -6,7 +6,7 @@ using DiskNode.Services;
 
     //builder.Configuration.AddXmlFile("StartUpXML.xml", optional: false, reloadOnChange: true);  // Configuration is loaded from XML file
      
-    // Validar que se pas� un archivo XML por argumento
+    // Validar que se pasó un archivo XML por argumento
     if (args.Length == 0)
     {
         Console.WriteLine("ERROR: Debes proporcionar el nombre del archivo XML como argumento.");
