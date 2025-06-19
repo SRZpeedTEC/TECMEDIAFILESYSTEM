@@ -1,6 +1,16 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\ControllerNode",
+    "\\ControllerNode\\ControllerNode",
+    "\\ControllerNode\\ControllerNode\\Models",
+    "\\DiskNode1",
+    "\\DiskNode1\\Controllers",
+    "\\DiskNode1\\Services",
+    "\\DiskNode2",
+    "\\DiskNode3",
+    "\\DiskNode4"
   ],
+  "SelectedNode": "\\ControllerNode\\ControllerNode.sln",
   "PreviewInSolutionExplorer": false
 }
