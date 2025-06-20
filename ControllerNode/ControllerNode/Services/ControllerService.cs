@@ -10,7 +10,7 @@ using ControllerNode.Models;
 
 namespace ControllerNode.Services
 {
-    internal class ControllerService
+    public class ControllerService
     {
         private int blockSize = 4;  // Tamaño de bloque en bytes para la simulación (ejemplo: 4 bytes)
         private Dictionary<string, List<BlockRef>> fileTable;  // Metadatos: archivos y ubicación de sus bloques
@@ -180,8 +180,10 @@ namespace ControllerNode.Services
             Console.WriteLine($"[RemoveDocument] Archivo '{fileName}' eliminado del sistema.");
         }
 
-
-
+        public IStorageNode[] GetStorageNodes()
+        {
+            return nodes;
+        }
 
 
         public ControllerService(IStorageNode[] storageNodes, int blockSizeBytes)

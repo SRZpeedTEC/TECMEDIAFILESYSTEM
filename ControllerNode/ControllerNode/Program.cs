@@ -34,17 +34,10 @@ namespace ControllerNode
 
             var controller = new ControllerService(nodes, blockSize);
 
-            // Demo: subir un PDF y recuperarlo
-            byte[] pdf = File.ReadAllBytes("demo.pdf");
-            await controller.AddDocumentAsync("demo", pdf);
-            Console.WriteLine("✔ Documento subido.");
-
-            byte[]? reconstruido = await controller.GetDocumentAsync("demo");
-            File.WriteAllBytes("demo_recuperado.pdf", reconstruido!);
-            Console.WriteLine("✔ Documento recuperado.");
+            
 
             ApplicationConfiguration.Initialize();
-            Application.Run(new Form1());
+            Application.Run(new Form1(controller));
         }
     }
 }
