@@ -590,19 +590,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\santi\\.nuget\\packages\\": {}
+    "C:\\Users\\Rachel\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\santi\\OneDrive\\Desktop\\DATOS II\\TECMEDIAFILESYSTEM\\DiskNode\\DiskNode.csproj",
+      "projectUniqueName": "C:\\Users\\Rachel\\Documents\\GitHub\\TECMEDIAFILESYSTEM\\DiskNode\\DiskNode.csproj",
       "projectName": "DiskNode",
-      "projectPath": "C:\\Users\\santi\\OneDrive\\Desktop\\DATOS II\\TECMEDIAFILESYSTEM\\DiskNode\\DiskNode.csproj",
-      "packagesPath": "C:\\Users\\santi\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\santi\\OneDrive\\Desktop\\DATOS II\\TECMEDIAFILESYSTEM\\DiskNode\\obj\\",
+      "projectPath": "C:\\Users\\Rachel\\Documents\\GitHub\\TECMEDIAFILESYSTEM\\DiskNode\\DiskNode.csproj",
+      "packagesPath": "C:\\Users\\Rachel\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Rachel\\Documents\\GitHub\\TECMEDIAFILESYSTEM\\DiskNode\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "C:\\Users\\santi\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Rachel\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -627,7 +632,8 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      }
+      },
+      "SdkAnalysisLevel": "9.0.100"
     },
     "frameworks": {
       "net8.0": {
@@ -657,7 +663,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.400/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
