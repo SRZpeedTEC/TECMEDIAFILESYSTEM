@@ -7,6 +7,7 @@ namespace ControllerNode
     public partial class Form1 : Form
     {
         private readonly ControllerService _controller;
+        private IStorageNode[] nodes;
         private readonly Button[] buttons;
 
         public Form1(ControllerService controller)
@@ -23,48 +24,34 @@ namespace ControllerNode
 
         protected override async void OnShown(EventArgs e)
         {
+            nodes = _controller.GetStorageNodes();
             base.OnShown(e);
             await LoopAsync();
         }
 
         private async Task LoopAsync()
         {
-            // Demo: subir un PDF y recuperarlo
-            byte[] pdf = File.ReadAllBytes("demo.pdf");
-            await _controller.AddDocumentAsync("demo", pdf);
-            Console.WriteLine("✔ Documento subido.");
-
-            byte[]? reconstruido = await _controller.GetDocumentAsync("demo");
-            File.WriteAllBytes("demo_recuperado.pdf", reconstruido!);
-            Console.WriteLine("✔ Documento recuperado.");
-
-            IStorageNode[] nodes = _controller.GetStorageNodes();
-
             while (true)
             {
                 for (int i = 0; i < nodes.Length; i++)
                 {
-                    IStorageNode node = nodes[i];
-                    bool isOnline = await node.IsOnlineAsync(CancellationToken.None);
-                    if (!isOnline)
-                    {
-                        buttons[i].Invoke((Action)(() =>
-                        {
-                            buttons[i].BackColor = Color.Red;
-                        }));
-                    }
-                    else
-                    {
-                        buttons[i].Invoke((Action)(() =>
-                        {
-                            buttons[i].BackColor = Color.Green;
-                        }));
-                    }
+                    await UpdateNodeButtonAsync(nodes[i], buttons[i]);
                 }
 
-                await Task.Delay(500);
+                await Task.Delay(100); 
             }
         }
+
+        private async Task UpdateNodeButtonAsync(IStorageNode node, Button button)
+        {
+            bool isOnline = await node.IsOnlineAsync(CancellationToken.None);
+
+            button.Invoke((Action)(() =>
+            {
+                button.BackColor = isOnline ? Color.Green : Color.Red;
+            }));
+        }
+
 
     }
 }
