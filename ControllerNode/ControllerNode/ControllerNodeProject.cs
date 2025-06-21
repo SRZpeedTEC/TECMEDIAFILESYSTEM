@@ -258,6 +258,14 @@ public class ControllerNodeProject
         Console.WriteLine($"Archivo tras eliminar: {(contenidoRecuperado3 == null ? "No disponible" : contenidoRecuperado3)}");
         Console.WriteLine("=== Fin de la prueba ===");
     }
+
+    //conectarse con la app 
+
+    public List<string> GetNombresDocumentos()
+    {
+        return new List<string>(fileTable.Keys);
+    }
+
 }
 
 

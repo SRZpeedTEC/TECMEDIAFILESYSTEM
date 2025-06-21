@@ -38,7 +38,7 @@ namespace ControllerNode
                     await UpdateNodeButtonAsync(nodes[i], buttons[i]);
                 }
 
-                await Task.Delay(100); 
+                await Task.Delay(100);
             }
         }
 
@@ -52,6 +52,19 @@ namespace ControllerNode
             }));
         }
 
+        private void label4_Click(object sender, EventArgs e)
+        {
 
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
