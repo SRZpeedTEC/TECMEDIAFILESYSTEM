@@ -1,21 +1,21 @@
 {
   "version": 2,
-  "dgSpecHash": "tOFgUjbnWfc=",
+  "dgSpecHash": "MMH8uAlObZQ=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Rachel\\Documents\\GitHub\\TECMEDIAFILESYSTEM\\DiskNode\\DiskNode.csproj",
+  "projectFilePath": "C:\\Users\\Santiago\\Desktop\\Universidad\\Datos II\\Repositorios\\TECMEDIAFILESYSTEM\\DiskNode\\DiskNode.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Rachel\\.nuget\\packages\\microsoft.bcl.cryptography\\9.0.5\\microsoft.bcl.cryptography.9.0.5.nupkg.sha512",
-    "C:\\Users\\Rachel\\.nuget\\packages\\microsoft.extensions.configuration\\9.0.5\\microsoft.extensions.configuration.9.0.5.nupkg.sha512",
-    "C:\\Users\\Rachel\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\9.0.5\\microsoft.extensions.configuration.abstractions.9.0.5.nupkg.sha512",
-    "C:\\Users\\Rachel\\.nuget\\packages\\microsoft.extensions.configuration.fileextensions\\9.0.5\\microsoft.extensions.configuration.fileextensions.9.0.5.nupkg.sha512",
-    "C:\\Users\\Rachel\\.nuget\\packages\\microsoft.extensions.configuration.xml\\9.0.5\\microsoft.extensions.configuration.xml.9.0.5.nupkg.sha512",
-    "C:\\Users\\Rachel\\.nuget\\packages\\microsoft.extensions.fileproviders.abstractions\\9.0.5\\microsoft.extensions.fileproviders.abstractions.9.0.5.nupkg.sha512",
-    "C:\\Users\\Rachel\\.nuget\\packages\\microsoft.extensions.fileproviders.physical\\9.0.5\\microsoft.extensions.fileproviders.physical.9.0.5.nupkg.sha512",
-    "C:\\Users\\Rachel\\.nuget\\packages\\microsoft.extensions.filesystemglobbing\\9.0.5\\microsoft.extensions.filesystemglobbing.9.0.5.nupkg.sha512",
-    "C:\\Users\\Rachel\\.nuget\\packages\\microsoft.extensions.primitives\\9.0.5\\microsoft.extensions.primitives.9.0.5.nupkg.sha512",
-    "C:\\Users\\Rachel\\.nuget\\packages\\system.formats.asn1\\9.0.5\\system.formats.asn1.9.0.5.nupkg.sha512",
-    "C:\\Users\\Rachel\\.nuget\\packages\\system.security.cryptography.pkcs\\9.0.5\\system.security.cryptography.pkcs.9.0.5.nupkg.sha512",
-    "C:\\Users\\Rachel\\.nuget\\packages\\system.security.cryptography.xml\\9.0.5\\system.security.cryptography.xml.9.0.5.nupkg.sha512"
+    "C:\\Users\\Santiago\\.nuget\\packages\\microsoft.bcl.cryptography\\9.0.5\\microsoft.bcl.cryptography.9.0.5.nupkg.sha512",
+    "C:\\Users\\Santiago\\.nuget\\packages\\microsoft.extensions.configuration\\9.0.5\\microsoft.extensions.configuration.9.0.5.nupkg.sha512",
+    "C:\\Users\\Santiago\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\9.0.5\\microsoft.extensions.configuration.abstractions.9.0.5.nupkg.sha512",
+    "C:\\Users\\Santiago\\.nuget\\packages\\microsoft.extensions.configuration.fileextensions\\9.0.5\\microsoft.extensions.configuration.fileextensions.9.0.5.nupkg.sha512",
+    "C:\\Users\\Santiago\\.nuget\\packages\\microsoft.extensions.configuration.xml\\9.0.5\\microsoft.extensions.configuration.xml.9.0.5.nupkg.sha512",
+    "C:\\Users\\Santiago\\.nuget\\packages\\microsoft.extensions.fileproviders.abstractions\\9.0.5\\microsoft.extensions.fileproviders.abstractions.9.0.5.nupkg.sha512",
+    "C:\\Users\\Santiago\\.nuget\\packages\\microsoft.extensions.fileproviders.physical\\9.0.5\\microsoft.extensions.fileproviders.physical.9.0.5.nupkg.sha512",
+    "C:\\Users\\Santiago\\.nuget\\packages\\microsoft.extensions.filesystemglobbing\\9.0.5\\microsoft.extensions.filesystemglobbing.9.0.5.nupkg.sha512",
+    "C:\\Users\\Santiago\\.nuget\\packages\\microsoft.extensions.primitives\\9.0.5\\microsoft.extensions.primitives.9.0.5.nupkg.sha512",
+    "C:\\Users\\Santiago\\.nuget\\packages\\system.formats.asn1\\9.0.5\\system.formats.asn1.9.0.5.nupkg.sha512",
+    "C:\\Users\\Santiago\\.nuget\\packages\\system.security.cryptography.pkcs\\9.0.5\\system.security.cryptography.pkcs.9.0.5.nupkg.sha512",
+    "C:\\Users\\Santiago\\.nuget\\packages\\system.security.cryptography.xml\\9.0.5\\system.security.cryptography.xml.9.0.5.nupkg.sha512"
   ],
   "logs": []
 }
