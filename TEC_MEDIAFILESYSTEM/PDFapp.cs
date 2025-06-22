@@ -103,28 +103,58 @@ namespace TEC_MEDIAFILESYSTEM
         {
             if (lstPdfs.SelectedItem is not string name) return;
 
-            using var resp = await http.GetAsync($"/documents/{Uri.EscapeDataString(name)}");
+           
+            using var resp = await http.GetAsync($"/documents/{name}",
+                          HttpCompletionOption.ResponseHeadersRead);   
             if (!resp.IsSuccessStatusCode) { MessageBox.Show("Error"); return; }
 
-
-            string ts = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            using var sfd = new SaveFileDialog {FileName = $"{Path.GetFileNameWithoutExtension(name)}_{ts}.pdf",
-                Filter = "PDF|*.pdf", OverwritePrompt = true, RestoreDirectory = true };
+           
+            using var sfd = new SaveFileDialog { FileName = name, Filter = "PDF|*.pdf" };
             if (sfd.ShowDialog() != DialogResult.OK) return;
 
-            File.WriteAllBytes(sfd.FileName, await resp.Content.ReadAsByteArrayAsync());
+            long? total = resp.Content.Headers.ContentLength;   
+            pbDownload.Value = 0;
+            pbDownload.Style = total is null ? ProgressBarStyle.Marquee
+                                             : ProgressBarStyle.Continuous;
+
+           
+            const int BUF = 81920;
+            var buffer = new byte[BUF];
+            long readTotal = 0;
+
+            using var inStream = await resp.Content.ReadAsStreamAsync();
+            using var outStream = File.Create(sfd.FileName);
+
+            int read;
+            while ((read = await inStream.ReadAsync(buffer, 0, BUF)) > 0)
+            {
+                await outStream.WriteAsync(buffer.AsMemory(0, read));
+                readTotal += read;
+
+                if (total is not null)
+                {
+                    int pct = (int)(readTotal * 100 / total.Value);
+                    pbDownload.Value = Math.Min(pct, 100);
+                }
+            }
+
+            pbDownload.Value = 0;               
             MessageBox.Show("Descargado");
+
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
                 FileName = sfd.FileName,
                 UseShellExecute = true
             });
+        }
 
-            Console.WriteLine($"[Download] saved → {sfd.FileName}");
+
+        private void progressBar1_Click(object sender, EventArgs e)
+        {
 
         }
 
-        private void progressBar1_Click(object sender, EventArgs e)
+        private void label1_Click(object sender, EventArgs e)
         {
 
         }

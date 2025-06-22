@@ -24,8 +24,6 @@ namespace ControllerNode.StorageNodes
             _blockSize = blockSize;
             _http = http;
 
-            _http.Timeout = TimeSpan.FromSeconds(2);
-
         }
 
         public async Task<bool> IsOnlineAsync(CancellationToken ct)
@@ -53,10 +51,17 @@ namespace ControllerNode.StorageNodes
 
         public async Task<byte[]?> ReadBlockAsync(long index, CancellationToken ct)
         {
-            var resp = await _http.GetAsync($"{_baseUrl}/blocks/{index}", ct);
-            if (resp.StatusCode == HttpStatusCode.NotFound) return null;
-            resp.EnsureSuccessStatusCode();
-            return await resp.Content.ReadAsByteArrayAsync(ct);
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(1));
+
+            try
+            {
+                var resp = await _http.GetAsync($"{_baseUrl}/blocks/{index}", cts.Token);
+                if (resp.StatusCode == HttpStatusCode.NotFound) return null;
+                resp.EnsureSuccessStatusCode();
+                return await resp.Content.ReadAsByteArrayAsync(cts.Token);
+            }
+            catch (TaskCanceledException) { return null; }
         }
 
         public async Task DeleteBlockAsync(long index, CancellationToken ct)

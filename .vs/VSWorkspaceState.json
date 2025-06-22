@@ -3,12 +3,11 @@
     "",
     "\\ControllerNode",
     "\\ControllerNode\\ControllerNode",
-    "\\ControllerNode\\ControllerNode\\StorageNodes",
+    "\\ControllerNode\\ControllerNode\\Models",
     "\\DiskNode",
-    "\\DiskNode\\Controllers",
-    "\\DiskNode\\Services",
+    "\\DiskNode4",
     "\\TEC_MEDIAFILESYSTEM"
   ],
-  "SelectedNode": "\\DiskNode\\Controllers\\BlocksController.cs",
+  "SelectedNode": "\\ControllerNode\\ControllerNode.sln",
   "PreviewInSolutionExplorer": false
 }

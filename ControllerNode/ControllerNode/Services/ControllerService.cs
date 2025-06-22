@@ -97,11 +97,18 @@ namespace ControllerNode.Services
 
         public async Task<byte[]?> GetDocumentAsync(string fileName, CancellationToken ct = default)
         {
+
+
             if (!fileTable.ContainsKey(fileName))
             {
                 Console.WriteLine($"[GetDocument] Archivo '{fileName}' no existe.");
                 return null;
             }
+
+            var tasks = nodes.Select(n => n.IsOnlineAsync(ct)).ToArray();
+            await Task.WhenAll(tasks);
+            var offline = tasks.Select(t => !t.Result).ToArray();
+
 
             var blocks = fileTable[fileName];
             int totalDataBlocks = 0;
@@ -116,22 +123,24 @@ namespace ControllerNode.Services
             for (int dataIndex = 0; dataIndex < totalDataBlocks; dataIndex++)
             {
                 var dataRef = blocks.Find(br => !br.IsParity && br.BlockNumber == dataIndex);
-                if (dataRef == null) continue;
-
                 byte[]? dataBlock = null;
-                try
-                {
-                    dataBlock = await nodes[dataRef.NodeIndex].ReadBlockAsync(dataRef.NodeBlockIndex, ct);
-                }
-                catch { }
+
+                if (!offline[dataRef.NodeIndex]) dataBlock = await nodes[dataRef.NodeIndex].ReadBlockAsync(dataRef.NodeBlockIndex, ct);
 
                 if (dataBlock == null)
                 {
                     int stripe = dataRef.StripeIndex;
                     var parityRef = blocks.Find(br => br.IsParity && br.StripeIndex == stripe);
+
+                    if (parityRef.NodeIndex == dataRef.NodeIndex)
+                    {
+                        continue;                        
+                    }
+
                     var dataRefsInStripe = blocks.FindAll(br => !br.IsParity && br.StripeIndex == stripe);
 
-                    byte[]? parityBlock = await nodes[parityRef.NodeIndex].ReadBlockAsync(parityRef.NodeBlockIndex, ct);
+                    byte[]? parityBlock = offline[parityRef.NodeIndex] ? null : await nodes[parityRef.NodeIndex].ReadBlockAsync(parityRef.NodeBlockIndex, ct);
+
                     if (parityBlock == null)
                     {
                         Console.WriteLine($"[GetDocument] No se puede reconstruir el bloque {dataIndex} (franja {stripe}).");
@@ -145,6 +154,7 @@ namespace ControllerNode.Services
                         foreach (var dRef in dataRefsInStripe)
                         {
                             if (dRef.BlockNumber == dataIndex) continue;
+                            if (offline[dRef.NodeIndex]) continue;
 
                             byte[]? dBlock = await nodes[dRef.NodeIndex].ReadBlockAsync(dRef.NodeBlockIndex, ct);
                             if (dBlock != null)
