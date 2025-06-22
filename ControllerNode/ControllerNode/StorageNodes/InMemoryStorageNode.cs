@@ -29,6 +29,13 @@ namespace ControllerNode.StorageNodes
             if (!Online || index >= blocks.Count) return Task.FromResult<byte[]?>(null);
             return Task.FromResult(blocks[(int)index]);
         }
+
+        public Task DeleteBlockAsync(long index, CancellationToken _)
+        {
+            if (index < blocks.Count) blocks[(int)index] = null;
+            return Task.CompletedTask;
+        }
+
     }
 
 }

@@ -18,5 +18,9 @@ namespace ControllerNode.Interfaces
 
         /// <summary>Lee un bloque; devuelve null si no existe.</summary>
         Task<byte[]?> ReadBlockAsync(long index, CancellationToken ct);
+
+        Task DeleteBlockAsync(long index, CancellationToken ct);
+
+
     }
 }

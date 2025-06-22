@@ -13,7 +13,7 @@ namespace ControllerNode.Services
 {
     public class ControllerService
     {
-        private int blockSize = 4;  // Tamaño de bloque en bytes para la simulación (ejemplo: 4 bytes)
+        private readonly int blockSize;
         private Dictionary<string, List<BlockRef>> fileTable;  // Metadatos: archivos y ubicación de sus bloques
         private readonly IStorageNode[] nodes;
         private readonly long[] nextIndex; // contador por nodo
@@ -29,9 +29,6 @@ namespace ControllerNode.Services
                 Console.WriteLine($"[AddDocument] El archivo '{fileName}' ya existe.");
                 return;
             }
-
-
-
 
             int totalBytes = contentBytes.Length;  
             fileSize[fileName] = totalBytes;         
@@ -165,7 +162,7 @@ namespace ControllerNode.Services
 
             if (fileSize.TryGetValue(fileName, out int real))
             {
-                Array.Resize(ref resultBytes, real);   
+                Array.Resize(ref resultBytes, real);
             }
 
             Console.WriteLine(
@@ -188,14 +185,18 @@ namespace ControllerNode.Services
             {
                 try
                 {
-                    // Puedes implementar un DELETE si tu API lo permite; por ahora simplemente ignora.
+                   
                     await nodes[br.NodeIndex].WriteBlockAsync(br.NodeBlockIndex, new byte[blockSize], ct);
+
                 }
                 catch
                 {
-                    Console.WriteLine($"[RemoveDocument] No se pudo limpiar bloque en nodo {br.NodeIndex}");
+                    Console.WriteLine($"[RemoveDocument] No se pudo borrar bloque {br.NodeBlockIndex} en nodo {br.NodeIndex}");
                 }
             }
+
+
+
 
             fileTable.Remove(fileName);
             fileSize.Remove(fileName);
@@ -217,6 +218,7 @@ namespace ControllerNode.Services
                 online = n.IsOnlineAsync(CancellationToken.None).Result,
                 nextIndex = nextIndex[i]
             });
+
 
 
 

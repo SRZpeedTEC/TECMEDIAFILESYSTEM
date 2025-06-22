@@ -58,5 +58,18 @@ public class BlockStorage
         return new FileStream(blockPath, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, true);
     }
 
+    public Task DeleteAsync(long index, CancellationToken ct)
+    {
+        if (index < 0 || index >= blockLimit)
+            throw new ArgumentOutOfRangeException(nameof(index));
+
+        string path = GetBlockPath(index);
+        if (File.Exists(path)) File.Delete(path);
+
+        return Task.CompletedTask;
+    }
+
+
+
 }
 

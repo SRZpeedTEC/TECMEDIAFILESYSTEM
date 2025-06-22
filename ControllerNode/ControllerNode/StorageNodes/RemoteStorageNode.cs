@@ -24,6 +24,8 @@ namespace ControllerNode.StorageNodes
             _blockSize = blockSize;
             _http = http;
 
+            _http.Timeout = TimeSpan.FromSeconds(2);
+
         }
 
         public async Task<bool> IsOnlineAsync(CancellationToken ct)
@@ -56,5 +58,13 @@ namespace ControllerNode.StorageNodes
             resp.EnsureSuccessStatusCode();
             return await resp.Content.ReadAsByteArrayAsync(ct);
         }
+
+        public async Task DeleteBlockAsync(long index, CancellationToken ct)
+        {
+            var resp = await _http.DeleteAsync($"{_baseUrl}/blocks/{index}", ct);
+            resp.EnsureSuccessStatusCode();
+        }
+
+
     }
 }

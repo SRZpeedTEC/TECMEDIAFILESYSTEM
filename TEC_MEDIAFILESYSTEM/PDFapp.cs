@@ -103,10 +103,13 @@ namespace TEC_MEDIAFILESYSTEM
         {
             if (lstPdfs.SelectedItem is not string name) return;
 
-            using var resp = await http.GetAsync($"/documents/{name}");
+            using var resp = await http.GetAsync($"/documents/{Uri.EscapeDataString(name)}");
             if (!resp.IsSuccessStatusCode) { MessageBox.Show("Error"); return; }
 
-            using var sfd = new SaveFileDialog { FileName = name, Filter = "PDF|*.pdf" };
+
+            string ts = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            using var sfd = new SaveFileDialog {FileName = $"{Path.GetFileNameWithoutExtension(name)}_{ts}.pdf",
+                Filter = "PDF|*.pdf", OverwritePrompt = true, RestoreDirectory = true };
             if (sfd.ShowDialog() != DialogResult.OK) return;
 
             File.WriteAllBytes(sfd.FileName, await resp.Content.ReadAsByteArrayAsync());

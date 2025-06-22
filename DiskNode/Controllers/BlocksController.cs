@@ -22,7 +22,7 @@ namespace DiskNode.Controllers
             var ContentLength = Request.ContentLength;        
             var expectedSize = storage.GetBlockSize();        
 
-            if (ContentLength == null && ContentLength != expectedSize)
+            if (ContentLength == null || ContentLength != expectedSize)
             {
                 return BadRequest($"The size of the block has to be {expectedSize} KB.");  // Validate content length against expected block size
             }
@@ -32,7 +32,7 @@ namespace DiskNode.Controllers
 
         }
 
-        [HttpGet("{(index:long}")]      // Match GET requests with a long index parameter
+        [HttpGet("{index:long}")]      // Match GET requests with a long index parameter
         public async Task<IActionResult> Get(long index)
         {
             var stream = await storage.ReadAsync(index, HttpContext.RequestAborted);
@@ -44,5 +44,14 @@ namespace DiskNode.Controllers
         {
             return Ok("OK");        // Health check endpoint to verify service status
         }
+
+        [HttpDelete("{index:long}")]
+        public async Task<IActionResult> Delete(long index)
+        {
+            await storage.DeleteAsync(index, HttpContext.RequestAborted);
+            return NoContent();
+        }
+
+
     }
 }

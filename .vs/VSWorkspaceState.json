@@ -5,8 +5,10 @@
     "\\ControllerNode\\ControllerNode",
     "\\ControllerNode\\ControllerNode\\StorageNodes",
     "\\DiskNode",
-    "\\DiskNode\\Services"
+    "\\DiskNode\\Controllers",
+    "\\DiskNode\\Services",
+    "\\TEC_MEDIAFILESYSTEM"
   ],
-  "SelectedNode": "\\ControllerNode\\ControllerNode.sln",
+  "SelectedNode": "\\DiskNode\\Controllers\\BlocksController.cs",
   "PreviewInSolutionExplorer": false
 }
