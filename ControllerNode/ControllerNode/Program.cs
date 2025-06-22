@@ -20,7 +20,7 @@ namespace ControllerNode
         private static extern bool AllocConsole();
 
         [STAThread]
-        static async Task Main()
+        static async Task Main(string[] args)// recibir argumentos del powershell
         {
             AllocConsole();
 
@@ -28,9 +28,22 @@ namespace ControllerNode
             var config = new ConfigurationBuilder()
                 .AddJsonFile("nodes.config.json", optional: false)
                 .Build();
+            //--------------------------------------
+            string host = "0.0.0.0"; // valor por defecto
+            int apiPort = config.GetValue<int>("Port", 6000); // desde config
+
+            if (args.Length >= 2)
+            {
+                host = args[0];
+                if (!int.TryParse(args[1], out apiPort))
+                {
+                    Console.WriteLine("El puerto ingresado no es válido. Usando el del archivo de configuración.");
+                }
+            }
+
+            //--------------------------------------
 
             int blockSize = config.GetValue<int>("BlockSize");
-            int apiPort = config.GetValue<int>("Port", 6000);  
             var nodeInfos = config.GetSection("Nodes").Get<List<NodeInfo>>()!;
 
             var httpClient = new HttpClient
@@ -50,10 +63,11 @@ namespace ControllerNode
             builder.Services.AddSingleton(controller);          // inyecta nuestro servicio
             builder.Services.AddControllers();                     // recogera DocumentsController
             var app = builder.Build();
-            app.MapControllers();                                 
+            app.MapControllers();
 
             // Levanta Kestrel **sin bloquear** (RunAsync)
-            var webTask = app.RunAsync($"http://0.0.0.0:{apiPort}");
+            var webTask = app.RunAsync($"http://{host}:{apiPort}");
+
 
             Console.WriteLine($"[ControllerNode] API escuchando en http://localhost:{apiPort}");
 
