@@ -1,6 +1,7 @@
 ﻿using ControllerNode.Interfaces;
-using ControllerNode.Services;   
+using ControllerNode.Services;
 using System.Threading;
+using System.Net.Http.Json;
 
 namespace ControllerNode
 {
@@ -16,6 +17,8 @@ namespace ControllerNode
             _controller = controller;
             buttons = new Button[] { button1, button2, button3, button4 };
         }
+
+
 
         private void label1_Click(object sender, EventArgs e)
         {
@@ -38,7 +41,7 @@ namespace ControllerNode
                     await UpdateNodeButtonAsync(nodes[i], buttons[i]);
                 }
 
-                await Task.Delay(100); 
+                await Task.Delay(100);
             }
         }
 
@@ -52,6 +55,36 @@ namespace ControllerNode
             }));
         }
 
+        private void button2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private readonly HttpClient _http = new() { BaseAddress = new("http://localhost:6000") };
+
+
+
+        private async void timer1_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                var status = await _http.GetFromJsonAsync<List<NodeDto>>("/status");
+                // NodeDto = { id, online, nextIndex }
+                foreach (var dto in status)
+                {
+                    Panel panel = Controls.Find($"pNode{dto.id}", true).First() as Panel;
+                    panel.BackColor = dto.online ? Color.LightGreen : Color.LightCoral;
+                }
+            }
+            catch { /* desconectado -> todo rojo */ }
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        record NodeDto(int id, bool online, long nextIndex);
 
     }
 }

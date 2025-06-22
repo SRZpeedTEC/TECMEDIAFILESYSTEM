@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             button1 = new Button();
             label1 = new Label();
             label2 = new Label();
@@ -36,6 +37,7 @@
             label4 = new Label();
             button3 = new Button();
             button4 = new Button();
+            timer1 = new System.Windows.Forms.Timer(components);
             SuspendLayout();
             // 
             // button1
@@ -75,6 +77,7 @@
             button2.Size = new Size(120, 243);
             button2.TabIndex = 3;
             button2.UseVisualStyleBackColor = true;
+            button2.Click += button2_Click;
             // 
             // label3
             // 
@@ -94,7 +97,8 @@
             label4.Name = "label4";
             label4.Size = new Size(79, 28);
             label4.TabIndex = 5;
-            label4.Text = "Nodo 3";
+            label4.Text = "Nodo 4";
+            label4.Click += label4_Click;
             // 
             // button3
             // 
@@ -112,6 +116,10 @@
             button4.TabIndex = 7;
             button4.UseVisualStyleBackColor = true;
             // 
+            // timer1
+            // 
+            timer1.Tick += timer1_Tick;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -126,7 +134,7 @@
             Controls.Add(label1);
             Controls.Add(button1);
             Name = "Form1";
-            Text = "Form1";
+            Text = "Nodes Status";
             ResumeLayout(false);
             PerformLayout();
         }
@@ -141,5 +149,6 @@
         private Label label4;
         private Button button3;
         private Button button4;
+        private System.Windows.Forms.Timer timer1;
     }
 }

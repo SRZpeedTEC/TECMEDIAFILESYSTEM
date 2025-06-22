@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using ControllerNode.Interfaces;
 using ControllerNode.Models;
+using System.Security.Cryptography;
 
 namespace ControllerNode.Services
 {
@@ -16,6 +17,8 @@ namespace ControllerNode.Services
         private Dictionary<string, List<BlockRef>> fileTable;  // Metadatos: archivos y ubicación de sus bloques
         private readonly IStorageNode[] nodes;
         private readonly long[] nextIndex; // contador por nodo
+        private readonly Dictionary<string, int> fileSize = new(); 
+
 
 
         // Agrega un documento (archivo) al sistema distribuido
@@ -27,7 +30,11 @@ namespace ControllerNode.Services
                 return;
             }
 
-            int totalBytes = contentBytes.Length;
+
+
+
+            int totalBytes = contentBytes.Length;  
+            fileSize[fileName] = totalBytes;         
             int totalDataBlocks = (totalBytes + blockSize - 1) / blockSize;
             int paddingBytes = totalDataBlocks * blockSize - totalBytes;
 
@@ -47,23 +54,26 @@ namespace ControllerNode.Services
                 int parityNode = (nodes.Length - 1) - (stripe % nodes.Length);
                 List<byte[]> stripeDataBlocks = new List<byte[]>();
 
-                for (int nodeIndex = 0; nodeIndex < nodes.Length; nodeIndex++)
+                var tasks = new List<Task>();
+
+                foreach (int nodeIndex in Enumerable.Range(0, nodes.Length))
                 {
                     if (nodeIndex == parityNode) continue;
-                    if (dataBlockIndex < totalDataBlocks)
-                    {
-                        byte[] blockData = new byte[blockSize];
-                        Array.Copy(contentBytes, dataBlockIndex * blockSize, blockData, 0, blockSize);
+                    if (dataBlockIndex >= totalDataBlocks) break;
 
-                        long blockPos = nextIndex[nodeIndex];
-                        await nodes[nodeIndex].WriteBlockAsync(blockPos, blockData, ct);
-                        nextIndex[nodeIndex]++;
+                    byte[] blockData = new byte[blockSize];
+                    Array.Copy(contentBytes, dataBlockIndex * blockSize, blockData, 0, blockSize);
 
-                        blockRefs.Add(new BlockRef(fileName, dataBlockIndex, stripe, false, nodeIndex, (int)blockPos));
-                        stripeDataBlocks.Add(blockData);
-                        dataBlockIndex++;
-                    }
+                    long blockPos = nextIndex[nodeIndex]++;      // reservar índice y luego ++
+                    tasks.Add(nodes[nodeIndex].WriteBlockAsync(blockPos, blockData, ct));
+
+                    blockRefs.Add(new BlockRef(fileName, dataBlockIndex, stripe,
+                                               false, nodeIndex, (int)blockPos));
+                    stripeDataBlocks.Add(blockData);
+                    dataBlockIndex++;
                 }
+
+                await Task.WhenAll(tasks);
 
                 byte[] parityBlock = new byte[blockSize];
                 for (int i = 0; i < blockSize; i++)
@@ -83,6 +93,9 @@ namespace ControllerNode.Services
 
             fileTable[fileName] = blockRefs;
             Console.WriteLine($"[AddDocument] Archivo '{fileName}' agregado con {totalDataBlocks} bloques de datos en {totalStripes} franjas.");
+
+            Console.WriteLine(
+            $"[AddDocument] SHA1={Convert.ToHexString(SHA1.HashData(contentBytes.AsSpan(0, totalBytes)))}");
         }
 
         public async Task<byte[]?> GetDocumentAsync(string fileName, CancellationToken ct = default)
@@ -150,6 +163,14 @@ namespace ControllerNode.Services
                 Array.Copy(dataBlock, 0, resultBytes, dataIndex * blockSize, blockSize);
             }
 
+            if (fileSize.TryGetValue(fileName, out int real))
+            {
+                Array.Resize(ref resultBytes, real);   
+            }
+
+            Console.WriteLine(
+            $"[GetDocument] SHA1={Convert.ToHexString(SHA1.HashData(resultBytes))}");
+
             return resultBytes;
         }
 
@@ -177,6 +198,7 @@ namespace ControllerNode.Services
             }
 
             fileTable.Remove(fileName);
+            fileSize.Remove(fileName);
             Console.WriteLine($"[RemoveDocument] Archivo '{fileName}' eliminado del sistema.");
         }
 
@@ -184,6 +206,18 @@ namespace ControllerNode.Services
         {
             return nodes;
         }
+
+        public IEnumerable<string> ListDocuments(string? q = null) =>
+        q is null ? fileTable.Keys
+                  : fileTable.Keys.Where(f => f.Contains(q, StringComparison.OrdinalIgnoreCase));
+
+        public IEnumerable<object> GetRaidStatus() =>
+            nodes.Select((n, i) => new {
+                id = i,
+                online = n.IsOnlineAsync(CancellationToken.None).Result,
+                nextIndex = nextIndex[i]
+            });
+
 
 
         public ControllerService(IStorageNode[] storageNodes, int blockSizeBytes)

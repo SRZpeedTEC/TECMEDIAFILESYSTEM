@@ -41,25 +41,27 @@
             btnRefrescar = new Button();
             lstPdfs = new ListBox();
             lblTitulo = new Label();
+            pbUpload = new ProgressBar();
             SuspendLayout();
             // 
             // txtBuscar
             // 
-            txtBuscar.Location = new Point(30, 90);
+            txtBuscar.Location = new Point(21, 54);
+            txtBuscar.Margin = new Padding(2);
             txtBuscar.Name = "txtBuscar";
-            txtBuscar.Size = new Size(300, 31);
+            txtBuscar.Size = new Size(211, 23);
             txtBuscar.TabIndex = 1;
             txtBuscar.Text = "dd";
             txtBuscar.TextChanged += txtBuscar_TextChanged;
             // 
             // btnBuscar
             // 
-            btnBuscar.BackColor = ColorTranslator.FromHtml("#A5D6A7");
+            btnBuscar.BackColor = Color.FromArgb(165, 214, 167);
             btnBuscar.ForeColor = Color.Black;
-
-            btnBuscar.Location = new Point(350, 88);
+            btnBuscar.Location = new Point(245, 53);
+            btnBuscar.Margin = new Padding(2);
             btnBuscar.Name = "btnBuscar";
-            btnBuscar.Size = new Size(100, 34);
+            btnBuscar.Size = new Size(70, 20);
             btnBuscar.TabIndex = 2;
             btnBuscar.Text = "Buscar";
             btnBuscar.UseVisualStyleBackColor = false;
@@ -67,11 +69,12 @@
             // 
             // btnAgregar
             // 
-            btnAgregar.BackColor = ColorTranslator.FromHtml("#42A5F5");
+            btnAgregar.BackColor = Color.FromArgb(66, 165, 245);
             btnAgregar.ForeColor = Color.White;
-            btnAgregar.Location = new Point(650, 140);
+            btnAgregar.Location = new Point(455, 84);
+            btnAgregar.Margin = new Padding(2);
             btnAgregar.Name = "btnAgregar";
-            btnAgregar.Size = new Size(200, 50);
+            btnAgregar.Size = new Size(140, 30);
             btnAgregar.TabIndex = 5;
             btnAgregar.Text = "Agregar documento";
             btnAgregar.UseVisualStyleBackColor = false;
@@ -79,12 +82,12 @@
             // 
             // btnEliminar
             // 
-            btnEliminar.BackColor = ColorTranslator.FromHtml("#A5D6A7");
+            btnEliminar.BackColor = Color.FromArgb(165, 214, 167);
             btnEliminar.ForeColor = Color.Black;
-
-            btnEliminar.Location = new Point(650, 210);
+            btnEliminar.Location = new Point(455, 126);
+            btnEliminar.Margin = new Padding(2);
             btnEliminar.Name = "btnEliminar";
-            btnEliminar.Size = new Size(200, 50);
+            btnEliminar.Size = new Size(140, 30);
             btnEliminar.TabIndex = 6;
             btnEliminar.Text = "Eliminar documento";
             btnEliminar.UseVisualStyleBackColor = false;
@@ -92,12 +95,12 @@
             // 
             // btnDescargar
             // 
-            btnDescargar.BackColor = ColorTranslator.FromHtml("#42A5F5");
+            btnDescargar.BackColor = Color.FromArgb(66, 165, 245);
             btnDescargar.ForeColor = Color.White;
-
-            btnDescargar.Location = new Point(650, 280);
+            btnDescargar.Location = new Point(455, 168);
+            btnDescargar.Margin = new Padding(2);
             btnDescargar.Name = "btnDescargar";
-            btnDescargar.Size = new Size(200, 50);
+            btnDescargar.Size = new Size(140, 30);
             btnDescargar.TabIndex = 7;
             btnDescargar.Text = "Descargar documento";
             btnDescargar.UseVisualStyleBackColor = false;
@@ -105,11 +108,12 @@
             // 
             // btnRefrescar
             // 
-            btnRefrescar.BackColor = ColorTranslator.FromHtml("#A5D6A7");
+            btnRefrescar.BackColor = Color.FromArgb(165, 214, 167);
             btnRefrescar.ForeColor = Color.Black;
-            btnRefrescar.Location = new Point(470, 88);
+            btnRefrescar.Location = new Point(329, 53);
+            btnRefrescar.Margin = new Padding(2);
             btnRefrescar.Name = "btnRefrescar";
-            btnRefrescar.Size = new Size(120, 34);
+            btnRefrescar.Size = new Size(84, 20);
             btnRefrescar.TabIndex = 3;
             btnRefrescar.Text = "Refrescar lista";
             btnRefrescar.UseVisualStyleBackColor = false;
@@ -118,14 +122,15 @@
             // lstPdfs
             // 
             lstPdfs.BackColor = Color.White;
-            lstPdfs.ForeColor = ColorTranslator.FromHtml("#263238");
+            lstPdfs.ForeColor = Color.FromArgb(38, 50, 56);
             lstPdfs.FormattingEnabled = true;
-            lstPdfs.ItemHeight = 25;
-            lstPdfs.Location = new Point(30, 140);
+            lstPdfs.ItemHeight = 15;
+            lstPdfs.Location = new Point(21, 84);
+            lstPdfs.Margin = new Padding(2);
             lstPdfs.Name = "lstPdfs";
             lstPdfs.RightToLeft = RightToLeft.No;
             lstPdfs.ScrollAlwaysVisible = true;
-            lstPdfs.Size = new Size(600, 379);
+            lstPdfs.Size = new Size(421, 229);
             lstPdfs.TabIndex = 4;
             lstPdfs.SelectedIndexChanged += lstPdfs_SelectedIndexChanged;
             // 
@@ -133,24 +138,32 @@
             // 
             lblTitulo.AutoSize = true;
             lblTitulo.CausesValidation = false;
-            lblTitulo.ForeColor = ColorTranslator.FromHtml("#0D47A1");
             lblTitulo.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
-            lblTitulo.TextAlign = ContentAlignment.TopCenter;
-
-            lblTitulo.Location = new Point(350, 9);
+            lblTitulo.ForeColor = Color.FromArgb(13, 71, 161);
+            lblTitulo.Location = new Point(245, 5);
+            lblTitulo.Margin = new Padding(2, 0, 2, 0);
             lblTitulo.Name = "lblTitulo";
-            lblTitulo.Size = new Size(203, 30);
+            lblTitulo.Size = new Size(221, 32);
             lblTitulo.TabIndex = 0;
             lblTitulo.Text = "TEC Media System";
             lblTitulo.TextAlign = ContentAlignment.TopRight;
             lblTitulo.Click += lblTitulo_Click;
             // 
+            // pbUpload
+            // 
+            pbUpload.Location = new Point(21, 346);
+            pbUpload.Name = "pbUpload";
+            pbUpload.Size = new Size(421, 23);
+            pbUpload.TabIndex = 8;
+            pbUpload.Click += progressBar1_Click;
+            // 
             // PDFapp
             // 
-            AutoScaleDimensions = new SizeF(10F, 25F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = ColorTranslator.FromHtml("#E3F2FD");
-            ClientSize = new Size(1026, 673);
+            BackColor = Color.FromArgb(227, 242, 253);
+            ClientSize = new Size(718, 404);
+            Controls.Add(pbUpload);
             Controls.Add(lblTitulo);
             Controls.Add(txtBuscar);
             Controls.Add(btnBuscar);
@@ -159,6 +172,7 @@
             Controls.Add(btnAgregar);
             Controls.Add(btnEliminar);
             Controls.Add(btnDescargar);
+            Margin = new Padding(2);
             Name = "PDFapp";
             Text = "PDFApp - TEC Media File System";
             Load += PDFapp_Load;
@@ -168,5 +182,7 @@
 
 
         #endregion
+
+        private ProgressBar pbUpload;
     }
 }

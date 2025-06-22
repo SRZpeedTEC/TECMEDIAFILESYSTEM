@@ -12,6 +12,7 @@ namespace ControllerNode.StorageNodes
     public sealed class RemoteStorageNode : IStorageNode
     {
         private readonly HttpClient _http;
+
         private readonly string _baseUrl;
         private readonly int _blockSize;
         public int Id { get; }
@@ -22,6 +23,7 @@ namespace ControllerNode.StorageNodes
             _baseUrl = url.TrimEnd('/');
             _blockSize = blockSize;
             _http = http;
+
         }
 
         public async Task<bool> IsOnlineAsync(CancellationToken ct)

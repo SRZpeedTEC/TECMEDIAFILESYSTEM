@@ -1,21 +1,23 @@
 {
-	"BlockSize": 64000,
-	"Nodes": [
-		{
-			"Id": 0,
-			"Url": "http://localhost:1234"
-		},
-		{
-			"Id": 1,
-			"Url": "http://localhost:1235"
-		},
-		{
-			"Id": 2,
-			"Url": "http://localhost:1236"
-		},
-		{
-			"Id": 3,
-			"Url": "http://localhost:1237"
-		}
-	]
+  "Port": 6000,
+  "BlockSize": 65536,
+  "Nodes": [
+    {
+      "id": 0,
+      "url": "http://localhost:1234"
+    },
+    {
+      "id": 1,
+      "url": "http://localhost:1235"
+    },
+    {
+      "id": 2,
+      "url": "http://localhost:1236"
+    },
+    {
+      "id": 3,
+      "url": "http://localhost:1237"
+    }
+  ]
 }
+

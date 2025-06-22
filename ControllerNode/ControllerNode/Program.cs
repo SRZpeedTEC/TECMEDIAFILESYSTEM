@@ -5,6 +5,12 @@ using ControllerNode.Services;
 using Microsoft.Extensions.Configuration;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
+
+
 
 namespace ControllerNode
 {
@@ -24,9 +30,15 @@ namespace ControllerNode
                 .Build();
 
             int blockSize = config.GetValue<int>("BlockSize");
+            int apiPort = config.GetValue<int>("Port", 6000);  
             var nodeInfos = config.GetSection("Nodes").Get<List<NodeInfo>>()!;
 
-            var httpClient = new HttpClient();
+            var httpClient = new HttpClient
+            {
+                Timeout = Timeout.InfiniteTimeSpan   // ⬅ sin límite
+            };
+
+
             var nodes = nodeInfos
                 .Select(info => new RemoteStorageNode(info.Id, info.Url, blockSize, httpClient))
                 .Cast<IStorageNode>()
@@ -34,17 +46,21 @@ namespace ControllerNode
 
             var controller = new ControllerService(nodes, blockSize);
 
-            // Demo: subir un PDF y recuperarlo
-            //byte[] pdf = File.ReadAllBytes("demo.pdf");
-            //await controller.AddDocumentAsync("demo", pdf);
-            //Console.WriteLine("✔ Documento subido.");
+            var builder = WebApplication.CreateBuilder();          
+            builder.Services.AddSingleton(controller);          // inyecta nuestro servicio
+            builder.Services.AddControllers();                     // recogera DocumentsController
+            var app = builder.Build();
+            app.MapControllers();                                 
 
-            //byte[]? reconstruido = await controller.GetDocumentAsync("demo");
-            //File.WriteAllBytes("demo_recuperado.pdf", reconstruido!);
-            //Console.WriteLine("✔ Documento recuperado.");
+            // Levanta Kestrel **sin bloquear** (RunAsync)
+            var webTask = app.RunAsync($"http://0.0.0.0:{apiPort}");
+
+            Console.WriteLine($"[ControllerNode] API escuchando en http://localhost:{apiPort}");
 
             ApplicationConfiguration.Initialize();
             Application.Run(new Form1(controller));
+
+            await app.StopAsync();
         }
     }
 }
