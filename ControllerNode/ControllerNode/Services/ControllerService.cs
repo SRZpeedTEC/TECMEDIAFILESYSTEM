@@ -97,19 +97,19 @@ namespace ControllerNode.Services
 
         public async Task<byte[]?> GetDocumentAsync(string fileName, CancellationToken ct = default)
         {
-
-
+            // Verificar si el archivo existe en la tabla de archivos
             if (!fileTable.ContainsKey(fileName))
             {
                 Console.WriteLine($"[GetDocument] Archivo '{fileName}' no existe.");
                 return null;
             }
 
+            // Comprobar qué nodos de almacenamiento están en línea (disponibles)
             var tasks = nodes.Select(n => n.IsOnlineAsync(ct)).ToArray();
             await Task.WhenAll(tasks);
-            var offline = tasks.Select(t => !t.Result).ToArray();
+            var offline = tasks.Select(t => !t.Result).ToArray();  // Array de nodos fuera de línea
 
-
+            // Obtener todas las referencias de bloques del archivo y calcular el total de bloques de datos
             var blocks = fileTable[fileName];
             int totalDataBlocks = 0;
             foreach (var br in blocks)
@@ -118,68 +118,132 @@ namespace ControllerNode.Services
                     totalDataBlocks = Math.Max(totalDataBlocks, br.BlockNumber + 1);
             }
 
+            // Buffer para ensamblar el archivo completo (incluyendo padding, se recorta después)
             byte[] resultBytes = new byte[totalDataBlocks * blockSize];
 
-            for (int dataIndex = 0; dataIndex < totalDataBlocks; dataIndex++)
+            // Agrupar referencias de bloques por franja (stripe) para procesar cada franja por separado
+            var stripes = blocks.GroupBy(br => br.StripeIndex);
+            foreach (var stripeGroup in stripes.OrderBy(g => g.Key))
             {
-                var dataRef = blocks.Find(br => !br.IsParity && br.BlockNumber == dataIndex);
-                byte[]? dataBlock = null;
+                int stripe = stripeGroup.Key;
+                // Referencia al bloque de paridad de esta franja y lista de bloques de datos
+                BlockRef parityRef = stripeGroup.First(br => br.IsParity);
+                var dataRefs = stripeGroup.Where(br => !br.IsParity).ToList();
 
-                if (!offline[dataRef.NodeIndex]) dataBlock = await nodes[dataRef.NodeIndex].ReadBlockAsync(dataRef.NodeBlockIndex, ct);
+                // Preparar diccionario para almacenar los datos de bloques de esta franja (clave: número de bloque de datos)
+                Dictionary<int, byte[]> stripeDataBytes = new();
 
-                if (dataBlock == null)
+                // Determinar si hay bloques de datos ausentes debido a nodos fuera de línea
+                BlockRef? missingDataRef = null;
+                int missingCount = 0;
+                foreach (var dr in dataRefs)
                 {
-                    int stripe = dataRef.StripeIndex;
-                    var parityRef = blocks.Find(br => br.IsParity && br.StripeIndex == stripe);
-
-                    if (parityRef.NodeIndex == dataRef.NodeIndex)
+                    if (offline[dr.NodeIndex])
                     {
-                        continue;                        
+                        // Este bloque de datos no está disponible (nodo fuera de línea)
+                        missingCount++;
+                        if (missingDataRef == null)
+                            missingDataRef = dr;
                     }
+                }
+                // Si más de un bloque de datos falta en la misma franja, no se puede reconstruir (RAID5 tolera solo 1 fallo)
+                if (missingCount > 1)
+                {
+                    Console.WriteLine($"[GetDocument] No se puede reconstruir el bloque {missingDataRef?.BlockNumber} (franja {stripe}).");
+                    return null;
+                }
 
-                    var dataRefsInStripe = blocks.FindAll(br => !br.IsParity && br.StripeIndex == stripe);
-
-                    byte[]? parityBlock = offline[parityRef.NodeIndex] ? null : await nodes[parityRef.NodeIndex].ReadBlockAsync(parityRef.NodeBlockIndex, ct);
-
-                    if (parityBlock == null)
+                // Leer en paralelo todos los bloques de datos disponibles (nodos en línea) de esta franja
+                var readTasks = new List<(BlockRef Ref, Task<byte[]?> Task)>();
+                foreach (var dr in dataRefs)
+                {
+                    if (!offline[dr.NodeIndex])
                     {
-                        Console.WriteLine($"[GetDocument] No se puede reconstruir el bloque {dataIndex} (franja {stripe}).");
+                        // Iniciar lectura asíncrona del bloque de datos desde su nodo
+                        readTasks.Add((dr, nodes[dr.NodeIndex].ReadBlockAsync(dr.NodeBlockIndex, ct)));
+                    }
+                }
+                await Task.WhenAll(readTasks.Select(t => t.Task));
+
+                // Procesar resultados de las lecturas de la franja
+                foreach (var (dr, task) in readTasks)
+                {
+                    byte[]? data = task.Result;
+                    if (data == null)
+                    {
+                        // Si un bloque no se pudo leer (null), considerarlo como bloque faltante
+                        missingCount++;
+                        if (missingDataRef == null)
+                        {
+                            missingDataRef = dr;
+                        }
+                        else
+                        {
+                            // Si ya había un bloque faltante, este sería el segundo (no recuperable)
+                            Console.WriteLine($"[GetDocument] No se puede reconstruir el bloque {missingDataRef.BlockNumber} (franja {stripe}).");
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        // Almacenar datos leídos del bloque de datos disponible
+                        stripeDataBytes[dr.BlockNumber] = data;
+                    }
+                }
+
+                // Si un bloque de datos falta, intentar reconstruirlo usando XOR (RAID5)
+                if (missingDataRef != null)
+                {
+                    // Verificar que el bloque de paridad esté disponible para la reconstrucción
+                    if (offline[parityRef.NodeIndex])
+                    {
+                        Console.WriteLine($"[GetDocument] No se puede reconstruir el bloque {missingDataRef.BlockNumber} (franja {stripe}).");
                         return null;
                     }
-
-                    byte[] reconstructed = new byte[blockSize];
+                    // Leer el bloque de paridad desde su nodo de almacenamiento
+                    byte[]? parityBlock = await nodes[parityRef.NodeIndex].ReadBlockAsync(parityRef.NodeBlockIndex, ct);
+                    if (parityBlock == null)
+                    {
+                        Console.WriteLine($"[GetDocument] No se puede reconstruir el bloque {missingDataRef.BlockNumber} (franja {stripe}).");
+                        return null;
+                    }
+                    // Reconstruir el bloque faltante aplicando XOR entre el bloque de paridad y los bloques de datos disponibles
+                    byte[] reconstructedBlock = new byte[blockSize];
                     for (int i = 0; i < blockSize; i++)
                     {
                         byte xor = parityBlock[i];
-                        foreach (var dRef in dataRefsInStripe)
+                        foreach (var dataBytes in stripeDataBytes.Values)
                         {
-                            if (dRef.BlockNumber == dataIndex) continue;
-                            if (offline[dRef.NodeIndex]) continue;
-
-                            byte[]? dBlock = await nodes[dRef.NodeIndex].ReadBlockAsync(dRef.NodeBlockIndex, ct);
-                            if (dBlock != null)
-                                xor ^= dBlock[i];
+                            xor ^= dataBytes[i];  // XOR de todos los bytes i-ésimos de los bloques disponibles
                         }
-                        reconstructed[i] = xor;
+                        reconstructedBlock[i] = xor;
                     }
-
-                    dataBlock = reconstructed;
-                    Console.WriteLine($"[GetDocument] * Reconstruido bloque {dataIndex} (franja {stripe}) usando XOR.");
+                    // Agregar el bloque reconstruido al diccionario como si se hubiera leído
+                    stripeDataBytes[missingDataRef.BlockNumber] = reconstructedBlock;
+                    Console.WriteLine($"[GetDocument] * Reconstruido bloque {missingDataRef.BlockNumber} (franja {stripe}) usando XOR.");
                 }
 
-                Array.Copy(dataBlock, 0, resultBytes, dataIndex * blockSize, blockSize);
+                // Copiar todos los bloques de datos de esta franja al buffer de resultado en su posición correspondiente
+                foreach (var kv in stripeDataBytes)
+                {
+                    int blockNumber = kv.Key;
+                    byte[] blockData = kv.Value;
+                    Array.Copy(blockData, 0, resultBytes, blockNumber * blockSize, blockSize);
+                }
             }
 
-            if (fileSize.TryGetValue(fileName, out int real))
+            // Recortar el buffer al tamaño real del archivo para eliminar bytes de relleno (padding)
+            if (fileSize.TryGetValue(fileName, out int realSize))
             {
-                Array.Resize(ref resultBytes, real);
+                Array.Resize(ref resultBytes, realSize);
             }
 
-            Console.WriteLine(
-            $"[GetDocument] SHA1={Convert.ToHexString(SHA1.HashData(resultBytes))}");
+            // Calcular y mostrar el hash SHA1 del archivo ensamblado para verificar integridad
+            Console.WriteLine($"[GetDocument] SHA1={Convert.ToHexString(SHA1.HashData(resultBytes))}");
 
             return resultBytes;
         }
+
 
         public async Task RemoveDocumentAsync(string fileName, CancellationToken ct = default)
         {
