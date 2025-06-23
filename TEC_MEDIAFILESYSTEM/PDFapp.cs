@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Net.Http.Json;
 using System.Diagnostics;
+using static System.Windows.Forms.Design.AxImporter;
 
 namespace TEC_MEDIAFILESYSTEM
 {
@@ -23,9 +24,10 @@ namespace TEC_MEDIAFILESYSTEM
 
         private async Task LoadListAsync(string? filtro = null)
         {
-            var ep = filtro is null ? "/documents"
-                                    : $"/documents?q={Uri.EscapeDataString(filtro)}";
+            var ep = filtro is null ? "/documents" : $"/documents?q={Uri.EscapeDataString(filtro)}";
+
             var lista = await http.GetFromJsonAsync<string[]>(ep);
+
             lstPdfs.DataSource = lista;
         }
 
@@ -102,22 +104,11 @@ namespace TEC_MEDIAFILESYSTEM
 
         private async void btnDescargar_Click(object sender, EventArgs e)
         {
-            if (lstPdfs.SelectedItem is not string name)
-                return;
+            if (lstPdfs.SelectedItem is not string name) return;
 
-            // 1) Pedimos dónde guardar ANTES de la petición HTTP
-            using var sfd = new SaveFileDialog
-            {
-                FileName = name,
-                Filter = "PDF|*.pdf"
-            };
-            if (sfd.ShowDialog() != DialogResult.OK)
-                return;
-
-            // 2) Llamada HTTP en modo ResponseHeadersRead (streaming)
-            using var resp = await http.GetAsync(
-                $"/documents/{name}",
-                HttpCompletionOption.ResponseHeadersRead);
+            // Petición HTTP 
+            using var resp = await http.GetAsync($"/documents/{name}",
+                                                 HttpCompletionOption.ResponseHeadersRead);
 
             if (!resp.IsSuccessStatusCode)
             {
@@ -125,49 +116,28 @@ namespace TEC_MEDIAFILESYSTEM
                 return;
             }
 
-            // 3) Inicializamos la barra con el tamaño total
-            long total = resp.Content.Headers.ContentLength ?? 0;
-            pbDownload.Minimum = 0;
-            pbDownload.Maximum = 100;
-            pbDownload.Value = 0;
-            pbDownload.Style = ProgressBarStyle.Continuous;
-            pbDownload.Visible = true;
-
-            // 4) Leemos en chunks y vamos escribiendo + actualizando la barra
-            using var inStream = await resp.Content.ReadAsStreamAsync();
-            using var outStream = File.Create(sfd.FileName);
-            const int BUF = 81920;
-            var buffer = new byte[BUF];
-            long readTotal = 0;
-
-            int read;
-            while ((read = await inStream.ReadAsync(buffer, 0, BUF)) > 0)
+            // Donde se guardará el PDF
+            using var sfd = new SaveFileDialog
             {
-                await outStream.WriteAsync(buffer.AsMemory(0, read));
-                readTotal += read;
+                FileName = name,
+                Filter = "PDF|*.pdf"
+            };
+            if (sfd.ShowDialog() != DialogResult.OK) return;
 
-                // Solo actualizamos si conocemos el total
-                if (total > 0)
-                {
-                    int pct = (int)(readTotal * 100 / total);
-                    pbDownload.Value = Math.Min(pct, 100);
-                    pbDownload.Update();  // fuerza repintado inmediato
-                }
+            // Copiar bytes al disco  
+            await using (var fs = File.Create(sfd.FileName))
+            {
+                await resp.Content.CopyToAsync(fs);
             }
 
-            // 5) Terminamos
-            pbDownload.Value = 0;
-            MessageBox.Show("Descarga completa.");
-
-            // Abrir automáticamente
+            // Abre el PDF recién creado
             Process.Start(new ProcessStartInfo
             {
                 FileName = sfd.FileName,
                 UseShellExecute = true
             });
+
         }
-
-
 
         private void progressBar1_Click(object sender, EventArgs e)
         {

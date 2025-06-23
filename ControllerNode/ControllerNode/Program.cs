@@ -20,7 +20,7 @@ namespace ControllerNode
         private static extern bool AllocConsole();
 
         [STAThread]
-        static async Task Main(string[] args)// recibir argumentos del powershell
+        static async Task Main(string[] args) // recibir argumentos del powershell
         {
             AllocConsole();
 
@@ -28,7 +28,7 @@ namespace ControllerNode
             var config = new ConfigurationBuilder()
                 .AddJsonFile("nodes.config.json", optional: false)
                 .Build();
-            //--------------------------------------
+            
             string host = "0.0.0.0"; // valor por defecto
             int apiPort = config.GetValue<int>("Port", 6000); // desde config
 
@@ -41,14 +41,14 @@ namespace ControllerNode
                 }
             }
 
-            //--------------------------------------
+           
 
             int blockSize = config.GetValue<int>("BlockSize");
             var nodeInfos = config.GetSection("Nodes").Get<List<NodeInfo>>()!;
 
             var httpClient = new HttpClient
             {
-                Timeout = Timeout.InfiniteTimeSpan   // ⬅ sin límite
+                Timeout = Timeout.InfiniteTimeSpan   //  sin límite
             };
 
 
@@ -65,7 +65,7 @@ namespace ControllerNode
             var app = builder.Build();
             app.MapControllers();
 
-            // Levanta Kestrel **sin bloquear** (RunAsync)
+            // Levanta Kestrel sin bloquear (RunAsync)
             var webTask = app.RunAsync($"http://{host}:{apiPort}");
 
 

@@ -27,61 +27,64 @@ namespace ControllerNode.Services
         private readonly string _metaPath;
 
         // Devuelve true si ese documento está en la tabla
-        public bool Exists(string fileName) =>
-            fileTable.ContainsKey(fileName);
+        public bool Exists(string fileName) 
+        {
+            return fileTable.ContainsKey(fileName); 
+        }
 
         // Devuelve el tamaño original en bytes (para Content-Length)
-        public long GetFileSize(string fileName) =>
-            fileSize.TryGetValue(fileName, out var size) ? size : 0;
-
-
-
+        public long GetFileSize(string fileName)
+        {
+            return fileSize.TryGetValue(fileName, out var size) ? size : 0;
+        }
 
         // Agrega un documento (archivo) al sistema distribuido
         public async Task AddDocumentAsync(string fileName, byte[] contentBytes, CancellationToken ct = default)
         {
-            if (fileTable.ContainsKey(fileName))
+            if (Exists(fileName))
             {
                 Console.WriteLine($"[AddDocument] El archivo '{fileName}' ya existe.");
                 return;
             }
 
             int totalBytes = contentBytes.Length;  
-            fileSize[fileName] = totalBytes;         
+            fileSize[fileName] = totalBytes; // se le da tamano al archivo         
             int totalDataBlocks = (totalBytes + blockSize - 1) / blockSize;
-            int paddingBytes = totalDataBlocks * blockSize - totalBytes;
+            int paddingBytes = totalDataBlocks * blockSize - totalBytes;    // Bytes de relleno (padding) para completar el último bloque
 
             if (paddingBytes > 0)
             {
-                Array.Resize(ref contentBytes, totalBytes + paddingBytes);
+                Array.Resize(ref contentBytes, totalBytes + paddingBytes);  // Agrega padding al final del contenido
                 totalBytes = contentBytes.Length;
             }
 
             List<BlockRef> blockRefs = new List<BlockRef>();
-            int blocksPerStripe = nodes.Length - 1;
+            int blocksPerStripe = nodes.Length - 1; // número de bloques de datos por franja (stripe), excluyendo el bloque de paridad
             int totalStripes = (totalDataBlocks + blocksPerStripe - 1) / blocksPerStripe;
             int dataBlockIndex = 0;
 
             for (int stripe = 0; stripe < totalStripes; stripe++)
             {
-                int parityNode = (nodes.Length - 1) - (stripe % nodes.Length);
-                List<byte[]> stripeDataBlocks = new List<byte[]>();
 
+                int parityNode = (nodes.Length - 1) - (stripe % nodes.Length);  // nodo que almacenará el bloque de paridad
+                List<byte[]> stripeDataBlocks = new List<byte[]>();
                 var tasks = new List<Task>();
 
-                foreach (int nodeIndex in Enumerable.Range(0, nodes.Length))
+
+                for (int nodeIndex = 0; nodeIndex < nodes.Length; nodeIndex++) 
                 {
-                    if (nodeIndex == parityNode) continue;
+                if (nodeIndex == parityNode) continue;
+
                     if (dataBlockIndex >= totalDataBlocks) break;
 
                     byte[] blockData = new byte[blockSize];
-                    Array.Copy(contentBytes, dataBlockIndex * blockSize, blockData, 0, blockSize);
+                    Array.Copy(contentBytes, dataBlockIndex * blockSize, blockData, 0, blockSize); 
 
                     long blockPos = nextIndex[nodeIndex]++;      // reservar índice y luego ++
-                    tasks.Add(nodes[nodeIndex].WriteBlockAsync(blockPos, blockData, ct));
+                    tasks.Add(nodes[nodeIndex].WriteBlockAsync(blockPos, blockData, ct));   // escribir bloque en el nodo
 
-                    blockRefs.Add(new BlockRef(fileName, dataBlockIndex, stripe,
-                                               false, nodeIndex, (int)blockPos));
+                    blockRefs.Add(new BlockRef(fileName, dataBlockIndex, stripe, false, nodeIndex, (int)blockPos));  // agregar referencia de bloque a la lista
+
                     stripeDataBlocks.Add(blockData);
                     dataBlockIndex++;
                 }
@@ -89,80 +92,91 @@ namespace ControllerNode.Services
                 await Task.WhenAll(tasks);
 
                 byte[] parityBlock = new byte[blockSize];
+
                 for (int i = 0; i < blockSize; i++)
                 {
                     byte xor = 0;
+
                     foreach (var block in stripeDataBlocks)
+                    {
                         xor ^= block[i];
-                    parityBlock[i] = xor;
+                        parityBlock[i] = xor;
+                    }
                 }
 
                 long parityPos = nextIndex[parityNode];
-                await nodes[parityNode].WriteBlockAsync(parityPos, parityBlock, ct);
+                await nodes[parityNode].WriteBlockAsync(parityPos, parityBlock, ct);    
                 nextIndex[parityNode]++;
 
-                blockRefs.Add(new BlockRef(fileName, -1, stripe, true, parityNode, (int)parityPos));
+                blockRefs.Add(new BlockRef(fileName, -1, stripe, true, parityNode, (int)parityPos));    
             }
 
             fileTable[fileName] = blockRefs;
             await SaveMetadataAsync();
             Console.WriteLine($"[AddDocument] Archivo '{fileName}' agregado con {totalDataBlocks} bloques de datos en {totalStripes} franjas.");
 
-            Console.WriteLine(
-            $"[AddDocument] SHA1={Convert.ToHexString(SHA1.HashData(contentBytes.AsSpan(0, totalBytes)))}");
+            
         }
 
         public async Task<byte[]?> GetDocumentAsync(string fileName, CancellationToken ct = default)
         {
             // Verificar si el archivo existe en la tabla de archivos
-            if (!fileTable.ContainsKey(fileName))
+            if (!Exists(fileName))
             {
                 Console.WriteLine($"[GetDocument] Archivo '{fileName}' no existe.");
                 return null;
             }
 
-            // Comprobar qué nodos de almacenamiento están en línea (disponibles)
-            var tasks = nodes.Select(n => n.IsOnlineAsync(ct)).ToArray();
+            // Comprobar qué nodos de almacenamiento están en línea
+            var tasks = nodes.Select(node => node.IsOnlineAsync(ct)).ToArray();
             await Task.WhenAll(tasks);
-            var offline = tasks.Select(t => !t.Result).ToArray();  // Array de nodos fuera de línea
+            var offline = tasks.Select(task => !task.Result).ToArray();  // Array de nodos fuera de línea
 
             // Obtener todas las referencias de bloques del archivo y calcular el total de bloques de datos
             var blocks = fileTable[fileName];
             int totalDataBlocks = 0;
-            foreach (var br in blocks)
+
+            foreach (var blockRef in blocks)    
             {
-                if (!br.IsParity && br.BlockNumber >= 0)
-                    totalDataBlocks = Math.Max(totalDataBlocks, br.BlockNumber + 1);
+                if (!blockRef.IsParity)  // C  
+                {
+                    totalDataBlocks = blockRef.BlockNumber + 1;  // C
+                }                   
             }
 
-            // Buffer para ensamblar el archivo completo (incluyendo padding, se recorta después)
+            // Buffer para ensamblar el archivo completo
             byte[] resultBytes = new byte[totalDataBlocks * blockSize];
 
             // Agrupar referencias de bloques por franja (stripe) para procesar cada franja por separado
-            var stripes = blocks.GroupBy(br => br.StripeIndex);
-            foreach (var stripeGroup in stripes.OrderBy(g => g.Key))
+            var stripes = blocks.GroupBy(blockRef => blockRef.StripeIndex); 
+            foreach (var stripeBlockGroup in stripes.OrderBy(group => group.Key))
             {
-                int stripe = stripeGroup.Key;
-                // Referencia al bloque de paridad de esta franja y lista de bloques de datos
-                BlockRef parityRef = stripeGroup.First(br => br.IsParity);
-                var dataRefs = stripeGroup.Where(br => !br.IsParity).ToList();
+                int stripe = stripeBlockGroup.Key;
 
-                // Preparar diccionario para almacenar los datos de bloques de esta franja (clave: número de bloque de datos)
+                // Referencia al bloque de paridad de esta franja y lista de bloques de datos
+                BlockRef parityRef = stripeBlockGroup.First(blockRef => blockRef.IsParity); // Separar bloque de paridad
+                var dataRefs = stripeBlockGroup.Where(blockRef => !blockRef.IsParity).ToList(); // Enlistar bloque de datos
+
+                // Preparar diccionario para almacenar los datos de bloques de esta franja, clave: número de bloque de datos
                 Dictionary<int, byte[]> stripeDataBytes = new();
 
                 // Determinar si hay bloques de datos ausentes debido a nodos fuera de línea
                 BlockRef? missingDataRef = null;
                 int missingCount = 0;
-                foreach (var dr in dataRefs)
+
+                foreach (var dataRef in dataRefs)
                 {
-                    if (offline[dr.NodeIndex])
+                    if (offline[dataRef.NodeIndex])
                     {
-                        // Este bloque de datos no está disponible (nodo fuera de línea)
+                        // Este bloque de datos no está disponible
                         missingCount++;
                         if (missingDataRef == null)
-                            missingDataRef = dr;
+                        {
+                            missingDataRef = dataRef;
+                        }
                     }
                 }
+
                 // Si más de un bloque de datos falta en la misma franja, no se puede reconstruir (RAID5 tolera solo 1 fallo)
                 if (missingCount > 1)
                 {
@@ -172,27 +186,27 @@ namespace ControllerNode.Services
 
                 // Leer en paralelo todos los bloques de datos disponibles (nodos en línea) de esta franja
                 var readTasks = new List<(BlockRef Ref, Task<byte[]?> Task)>();
-                foreach (var dr in dataRefs)
+                foreach (var dataRef in dataRefs)
                 {
-                    if (!offline[dr.NodeIndex])
+                    if (!offline[dataRef.NodeIndex])
                     {
                         // Iniciar lectura asíncrona del bloque de datos desde su nodo
-                        readTasks.Add((dr, nodes[dr.NodeIndex].ReadBlockAsync(dr.NodeBlockIndex, ct)));
+                        readTasks.Add((dataRef, nodes[dataRef.NodeIndex].ReadBlockAsync(dataRef.NodeBlockIndex, ct)));
                     }
                 }
-                await Task.WhenAll(readTasks.Select(t => t.Task));
+                await Task.WhenAll(readTasks.Select(task => task.Task));
 
                 // Procesar resultados de las lecturas de la franja
-                foreach (var (dr, task) in readTasks)
+                foreach (var (dataRef, task) in readTasks)
                 {
                     byte[]? data = task.Result;
                     if (data == null)
                     {
-                        // Si un bloque no se pudo leer (null), considerarlo como bloque faltante
+                        // Si un bloque no se pudo leer, considerarlo como bloque faltante
                         missingCount++;
                         if (missingDataRef == null)
                         {
-                            missingDataRef = dr;
+                            missingDataRef = dataRef;
                         }
                         else
                         {
@@ -204,11 +218,11 @@ namespace ControllerNode.Services
                     else
                     {
                         // Almacenar datos leídos del bloque de datos disponible
-                        stripeDataBytes[dr.BlockNumber] = data;
+                        stripeDataBytes[dataRef.BlockNumber] = data;
                     }
                 }
 
-                // Si un bloque de datos falta, intentar reconstruirlo usando XOR (RAID5)
+                // Si un bloque de datos falta, intentar reconstruirlo usando XOR
                 if (missingDataRef != null)
                 {
                     // Verificar que el bloque de paridad esté disponible para la reconstrucción
@@ -241,15 +255,15 @@ namespace ControllerNode.Services
                 }
 
                 // Copiar todos los bloques de datos de esta franja al buffer de resultado en su posición correspondiente
-                foreach (var kv in stripeDataBytes)
+                foreach (var entry in stripeDataBytes)
                 {
-                    int blockNumber = kv.Key;
-                    byte[] blockData = kv.Value;
+                    int blockNumber = entry.Key;
+                    byte[] blockData = entry.Value;
                     Array.Copy(blockData, 0, resultBytes, blockNumber * blockSize, blockSize);
                 }
             }
 
-            // Recortar el buffer al tamaño real del archivo para eliminar bytes de relleno (padding)
+            // Recortar el buffer al tamaño real del archivo para eliminar bytes de relleno
             if (fileSize.TryGetValue(fileName, out int realSize))
             {
                 Array.Resize(ref resultBytes, realSize);
@@ -261,101 +275,8 @@ namespace ControllerNode.Services
             return resultBytes;
         }
 
-        private async Task<byte[]> ReadOrReconstructBlockAsync(
-        string fileName,
-        int dataIndex,
-        CancellationToken ct)
-            {
-            // Obtiene todas las referencias de bloques de ese archivo
-            var blocks = fileTable[fileName];
 
-            // Encuentra la referencia concreta del bloque de datos
-            var dataRef = blocks.First(br => !br.IsParity && br.BlockNumber == dataIndex);
-
-            byte[]? block = null;
-
-            // 1) Intentar leerlo directo si el nodo está online
-            if (await nodes[dataRef.NodeIndex].IsOnlineAsync(ct))
-            {
-                block = await nodes[dataRef.NodeIndex]
-                    .ReadBlockAsync(dataRef.NodeBlockIndex, ct)
-                    .ConfigureAwait(false);
-            }
-
-            // 2) Si no existe o el nodo está offline, reconstruir con XOR
-            if (block == null)
-            {
-                int stripe = dataRef.StripeIndex;
-                // Referencia al bloque de paridad de esa franja
-                var parityRef = blocks.First(br => br.IsParity && br.StripeIndex == stripe);
-
-                // Leer la paridad
-                byte[] parity = await nodes[parityRef.NodeIndex]
-                    .ReadBlockAsync(parityRef.NodeBlockIndex, ct)
-                    .ConfigureAwait(false);
-
-                // Obtener referencias de todos los datos de la franja
-                var dataRefsInStripe = blocks
-                    .Where(br => !br.IsParity && br.StripeIndex == stripe);
-
-                // XOR para reconstruir
-                var rebuilt = new byte[blockSize];
-                for (int i = 0; i < blockSize; i++)
-                {
-                    byte x = parity[i];
-                    foreach (var dRef in dataRefsInStripe)
-                    {
-                        if (dRef.BlockNumber == dataIndex) continue;
-                        byte[]? dBlock = await nodes[dRef.NodeIndex]
-                            .ReadBlockAsync(dRef.NodeBlockIndex, ct)
-                            .ConfigureAwait(false);
-                        if (dBlock != null) x ^= dBlock[i];
-                    }
-                    rebuilt[i] = x;
-                }
-
-                block = rebuilt;
-            }
-
-            return block!;
-        }
-
-
-        public async IAsyncEnumerable<byte[]> StreamDocumentAsync(
-    string fileName,
-    [EnumeratorCancellation] CancellationToken ct = default)
-        {
-            // Tamaño real del documento (sin padding)
-            long totalLength = fileSize[fileName];
-
-            // Número de bloques necesarios (ceil)
-            int totalBlocks = (int)((totalLength + blockSize - 1) / blockSize);
-
-            for (int dataIndex = 0; dataIndex < totalBlocks; dataIndex++)
-            {
-                // 1) Leer o reconstruir bloque completo
-                byte[] fullBlock = await ReadOrReconstructBlockAsync(fileName, dataIndex, ct)
-                    .ConfigureAwait(false);
-
-                // 2) Si es el último bloque, recortar al tamaño restante
-                if (dataIndex == totalBlocks - 1)
-                {
-                    int remainder = (int)(totalLength - (long)dataIndex * blockSize);
-                    if (remainder < fullBlock.Length)
-                    {
-                        var last = new byte[remainder];
-                        Array.Copy(fullBlock, 0, last, 0, remainder);
-                        yield return last;
-                        continue;
-                    }
-                }
-
-                // 3) En el resto de bloques, envío completo
-                yield return fullBlock;
-            }
-        }
-
-
+        // Elimina un documento del sistema distribuido
         public async Task RemoveDocumentAsync(string fileName, CancellationToken ct = default)
         {
             if (!fileTable.ContainsKey(fileName))
@@ -366,45 +287,41 @@ namespace ControllerNode.Services
 
             var blocks = fileTable[fileName];
 
-            foreach (var br in blocks)
+            // Comprobar qué nodos de almacenamiento están en línea
+            foreach (var blockRef in blocks)
             {
                 try
                 {
                    
-                    await nodes[br.NodeIndex].WriteBlockAsync(br.NodeBlockIndex, new byte[blockSize], ct);
+                    await nodes[blockRef.NodeIndex].WriteBlockAsync(blockRef.NodeBlockIndex, new byte[blockSize], ct);
 
                 }
                 catch
                 {
-                    Console.WriteLine($"[RemoveDocument] No se pudo borrar bloque {br.NodeBlockIndex} en nodo {br.NodeIndex}");
+                    Console.WriteLine($"[RemoveDocument] No se pudo borrar bloque {blockRef.NodeBlockIndex} en nodo {blockRef.NodeIndex}");
                 }
             }
 
-
-
-
+            // Eliminar las referencias del archivo de la tabla
             fileTable.Remove(fileName);
             fileSize.Remove(fileName);
             await SaveMetadataAsync(); 
             Console.WriteLine($"[RemoveDocument] Archivo '{fileName}' eliminado del sistema.");
         }
 
-        public IStorageNode[] GetStorageNodes()
+        // Devuelve todos los nodos de almacenamiento
+        public IStorageNode[] GetStorageNodes() 
         {
             return nodes;
         }
 
-        public IEnumerable<string> ListDocuments(string? q = null) =>
-        q is null ? fileTable.Keys
-                  : fileTable.Keys.Where(f => f.Contains(q, StringComparison.OrdinalIgnoreCase));
+        // Lista los nombres de los documentos almacenados filtrados
+        public IEnumerable<string> ListDocuments(string? q = null) => q is null ? fileTable.Keys : fileTable.Keys.Where(file => file.Contains(q, StringComparison.OrdinalIgnoreCase));
+        
+        // Devuelve el estado de los nodos de almacenamiento
+        public IEnumerable<object> GetRaidStatus() => nodes.Select((node, i) => new { id = i, online = node.IsOnlineAsync(CancellationToken.None).Result, nextIndex = nextIndex[i] });
 
-        public IEnumerable<object> GetRaidStatus() =>
-            nodes.Select((n, i) => new {
-                id = i,
-                online = n.IsOnlineAsync(CancellationToken.None).Result,
-                nextIndex = nextIndex[i]
-            });
-
+        // Guarda la metadata en un archivo JSON
         private async Task SaveMetadataAsync()
         {
             var doc = new MetadataDoc
@@ -412,64 +329,50 @@ namespace ControllerNode.Services
                 FileTable = fileTable,
                 FileSize = fileSize
             };
-            await using var fs = File.Create(_metaPath);
-            await JsonSerializer.SerializeAsync(fs, doc, new JsonSerializerOptions
+            await using var fileSystem = File.Create(_metaPath);
+            await JsonSerializer.SerializeAsync(fileSystem, doc, new JsonSerializerOptions
             {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
         }
 
-
-        private async Task LoadMetadataAsync()
+        private async Task LoadMetadataAsync()  // Carga la metadata desde el archivo JSON
         {
-            // si no hay JSON, arrancamos limpios
+            
             if (!File.Exists(_metaPath))
             {
-                fileTable = new Dictionary<string, List<BlockRef>>();
+                fileTable = new Dictionary<string, List<BlockRef>>();   // inicializar fileTable si no existe
                 fileSize.Clear();
                 return;
             }
 
-            await using var fs = File.OpenRead(_metaPath);
-            var doc = await JsonSerializer.DeserializeAsync<MetadataDoc>(fs, new JsonSerializerOptions
+            await using var fileSystem = File.OpenRead(_metaPath);
+            var doc = await JsonSerializer.DeserializeAsync<MetadataDoc>(fileSystem, new JsonSerializerOptions      
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                AllowTrailingCommas = true
-            }) ?? new MetadataDoc();
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase, AllowTrailingCommas = true }) ?? new MetadataDoc(); // deserializar metadata
 
-            // reasignamos fileTable (no es readonly)
+
             fileTable = doc.FileTable ?? new();
 
-            // en lugar de fileSize = doc.FileSize, hacemos:
+            
             fileSize.Clear();
             if (doc.FileSize != null)
             {
-                foreach (var kv in doc.FileSize)
+                foreach (var entry in doc.FileSize)
                 {
-                    fileSize[kv.Key] = kv.Value;
+                    fileSize[entry.Key] = entry.Value;
                 }
             }
-
-            // recalculamos nextIndex igual que antes...
-            for (int i = 0; i < nodes.Length; i++)
+          
+            for (int i = 0; i < nodes.Length; i++)  
             {
-                long maxPos = fileTable
-                    .SelectMany(kv => kv.Value)
-                    .Where(br => br.NodeIndex == i)
-                    .Select(br => (long)br.NodeBlockIndex)
-                    .DefaultIfEmpty(-1)
-                    .Max();
-
-                nextIndex[i] = maxPos + 1;
+                
+                long maxPos = fileTable.SelectMany(entry => entry.Value).Where(blockRef => blockRef.NodeIndex == i).Select(blockRef => (long)blockRef.NodeBlockIndex).DefaultIfEmpty(-1).Max();   
             }
         }
 
-
-
-
-
-        public ControllerService(IStorageNode[] storageNodes, int blockSizeBytes)
+        // Constructor que recibe los nodos de almacenamiento y el tamaño del bloque
+        public ControllerService(IStorageNode[] storageNodes, int blockSizeBytes) 
         {
             nodes = storageNodes;
             blockSize = blockSizeBytes;
@@ -477,9 +380,9 @@ namespace ControllerNode.Services
             nextIndex = new long[nodes.Length];
             _metaPath = Path.Combine(AppContext.BaseDirectory, "filetable.json");
             if (File.Exists(_metaPath))
+            {
                 LoadMetadataAsync().Wait();   // carga fileTable y fileSize antes de cualquier operación
-
-
+            }
         }
     }
 }

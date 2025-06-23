@@ -18,9 +18,11 @@ public class BlockStorage
     public BlockStorage(IConfiguration config)      // Constructor that initializes the storage path and block size from configuration
     {
         path = config["DiskNode:Path"];
+
         var totalSize = int.Parse(config["DiskNode:TotalSizeMB"]) * 1024 * 1024;
 
         this.blockSize = int.Parse(config["DiskNode:BlockSizeKB"]) * 1024;
+
         this.blockLimit = totalSize / blockSize;
 
         Directory.CreateDirectory(path);
@@ -40,14 +42,14 @@ public class BlockStorage
             throw new ArgumentOutOfRangeException(nameof(index), "The index can't be negative");
         }
 
-        await using var fileToSeek = new FileStream(GetBlockPath(index), FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
+        await using var fileToSave = new FileStream(GetBlockPath(index), FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
 
         cancellationToken.ThrowIfCancellationRequested();
-        await source.CopyToAsync(fileToSeek, 81920, cancellationToken);
+        await source.CopyToAsync(fileToSave, 81920, cancellationToken);
 
     }
 
-    public async Task<FileStream> ReadAsync(long index, CancellationToken cancellationToken)     // Methot to read a block of data from the storage
+    public async Task<FileStream> ReadAsync(long index, CancellationToken cancellationToken)     // Method to read a block of data from the storage
     {
         var blockPath = GetBlockPath(index);
 
@@ -61,15 +63,18 @@ public class BlockStorage
     public Task DeleteAsync(long index, CancellationToken ct)
     {
         if (index < 0 || index >= blockLimit)
+        {
             throw new ArgumentOutOfRangeException(nameof(index));
+        }
 
         string path = GetBlockPath(index);
-        if (File.Exists(path)) File.Delete(path);
+
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+        }
 
         return Task.CompletedTask;
     }
-
-
-
 }
 

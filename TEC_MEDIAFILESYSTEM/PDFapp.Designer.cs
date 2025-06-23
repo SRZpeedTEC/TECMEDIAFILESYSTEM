@@ -42,9 +42,7 @@
             lstPdfs = new ListBox();
             lblTitulo = new Label();
             pbUpload = new ProgressBar();
-            pbDownload = new ProgressBar();
             label1 = new Label();
-            label2 = new Label();
             SuspendLayout();
             // 
             // txtBuscar
@@ -160,13 +158,6 @@
             pbUpload.TabIndex = 8;
             pbUpload.Click += progressBar1_Click;
             // 
-            // pbDownload
-            // 
-            pbDownload.Location = new Point(21, 408);
-            pbDownload.Name = "pbDownload";
-            pbDownload.Size = new Size(421, 23);
-            pbDownload.TabIndex = 9;
-            // 
             // label1
             // 
             label1.AutoSize = true;
@@ -177,24 +168,13 @@
             label1.Text = "Tiempo de subida";
             label1.Click += label1_Click;
             // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Location = new Point(176, 390);
-            label2.Name = "label2";
-            label2.Size = new Size(114, 15);
-            label2.TabIndex = 11;
-            label2.Text = "Tiempo de descarga";
-            // 
             // PDFapp
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(227, 242, 253);
-            ClientSize = new Size(718, 466);
-            Controls.Add(label2);
+            ClientSize = new Size(718, 402);
             Controls.Add(label1);
-            Controls.Add(pbDownload);
             Controls.Add(pbUpload);
             Controls.Add(lblTitulo);
             Controls.Add(txtBuscar);
@@ -216,8 +196,6 @@
         #endregion
 
         private ProgressBar pbUpload;
-        private ProgressBar pbDownload;
         private Label label1;
-        private Label label2;
     }
 }

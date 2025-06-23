@@ -28,14 +28,15 @@ namespace DiskNode.Controllers
             }
 
             await storage.WriteAsync(index, Request.Body, HttpContext.RequestAborted);
-            return NoContent();
 
+            return NoContent();
         }
 
         [HttpGet("{index:long}")]      // Match GET requests with a long index parameter
         public async Task<IActionResult> Get(long index)
         {
             var stream = await storage.ReadAsync(index, HttpContext.RequestAborted);
+
             return File(stream, "application/octet-stream", enableRangeProcessing: false);
         }
 
@@ -44,6 +45,7 @@ namespace DiskNode.Controllers
         {
             return Ok("OK");        // Health check endpoint to verify service status
         }
+
 
         [HttpDelete("{index:long}")]
         public async Task<IActionResult> Delete(long index)

@@ -10,16 +10,14 @@ namespace ControllerNode.Interfaces
     {
         int Id { get; }
 
-        /// <summary>¿El nodo responde al *health-check*?</summary>
-        Task<bool> IsOnlineAsync(CancellationToken ct);
+       
+        Task<bool> IsOnlineAsync(CancellationToken ct); // Responde al health-check
+                                                      
+        Task WriteBlockAsync(long index, byte[] data, CancellationToken ct); // Escribe el bloque exacto segun la configuracion
+   
+        Task<byte[]?> ReadBlockAsync(long index, CancellationToken ct); // Devuelve el contenido
 
-        /// <summary>Escribe un bloque EXACTO del tamaño configurado.</summary>
-        Task WriteBlockAsync(long index, byte[] data, CancellationToken ct);
-
-        /// <summary>Lee un bloque; devuelve null si no existe.</summary>
-        Task<byte[]?> ReadBlockAsync(long index, CancellationToken ct);
-
-        Task DeleteBlockAsync(long index, CancellationToken ct);
+        Task DeleteBlockAsync(long index, CancellationToken ct); // Elimina el bloque, si existe
 
 
     }
