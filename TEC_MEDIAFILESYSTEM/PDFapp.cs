@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Net.Http.Json;
+using System.Diagnostics;
 
 namespace TEC_MEDIAFILESYSTEM
 {
@@ -18,7 +19,7 @@ namespace TEC_MEDIAFILESYSTEM
             InitializeComponent();
         }
 
-        private readonly HttpClient http = new() { BaseAddress = new("http://localhost:6000") };
+        private readonly HttpClient http = new() { BaseAddress = new("http://localhost:6000"), Timeout = Timeout.InfiniteTimeSpan };
 
         private async Task LoadListAsync(string? filtro = null)
         {
@@ -101,29 +102,43 @@ namespace TEC_MEDIAFILESYSTEM
 
         private async void btnDescargar_Click(object sender, EventArgs e)
         {
-            if (lstPdfs.SelectedItem is not string name) return;
+            if (lstPdfs.SelectedItem is not string name)
+                return;
 
-           
-            using var resp = await http.GetAsync($"/documents/{name}",
-                          HttpCompletionOption.ResponseHeadersRead);   
-            if (!resp.IsSuccessStatusCode) { MessageBox.Show("Error"); return; }
+            // 1) Pedimos dónde guardar ANTES de la petición HTTP
+            using var sfd = new SaveFileDialog
+            {
+                FileName = name,
+                Filter = "PDF|*.pdf"
+            };
+            if (sfd.ShowDialog() != DialogResult.OK)
+                return;
 
-           
-            using var sfd = new SaveFileDialog { FileName = name, Filter = "PDF|*.pdf" };
-            if (sfd.ShowDialog() != DialogResult.OK) return;
+            // 2) Llamada HTTP en modo ResponseHeadersRead (streaming)
+            using var resp = await http.GetAsync(
+                $"/documents/{name}",
+                HttpCompletionOption.ResponseHeadersRead);
 
-            long? total = resp.Content.Headers.ContentLength;   
+            if (!resp.IsSuccessStatusCode)
+            {
+                MessageBox.Show("Error al descargar.");
+                return;
+            }
+
+            // 3) Inicializamos la barra con el tamaño total
+            long total = resp.Content.Headers.ContentLength ?? 0;
+            pbDownload.Minimum = 0;
+            pbDownload.Maximum = 100;
             pbDownload.Value = 0;
-            pbDownload.Style = total is null ? ProgressBarStyle.Marquee
-                                             : ProgressBarStyle.Continuous;
+            pbDownload.Style = ProgressBarStyle.Continuous;
+            pbDownload.Visible = true;
 
-           
+            // 4) Leemos en chunks y vamos escribiendo + actualizando la barra
+            using var inStream = await resp.Content.ReadAsStreamAsync();
+            using var outStream = File.Create(sfd.FileName);
             const int BUF = 81920;
             var buffer = new byte[BUF];
             long readTotal = 0;
-
-            using var inStream = await resp.Content.ReadAsStreamAsync();
-            using var outStream = File.Create(sfd.FileName);
 
             int read;
             while ((read = await inStream.ReadAsync(buffer, 0, BUF)) > 0)
@@ -131,22 +146,27 @@ namespace TEC_MEDIAFILESYSTEM
                 await outStream.WriteAsync(buffer.AsMemory(0, read));
                 readTotal += read;
 
-                if (total is not null)
+                // Solo actualizamos si conocemos el total
+                if (total > 0)
                 {
-                    int pct = (int)(readTotal * 100 / total.Value);
+                    int pct = (int)(readTotal * 100 / total);
                     pbDownload.Value = Math.Min(pct, 100);
+                    pbDownload.Update();  // fuerza repintado inmediato
                 }
             }
 
-            pbDownload.Value = 0;               
-            MessageBox.Show("Descargado");
+            // 5) Terminamos
+            pbDownload.Value = 0;
+            MessageBox.Show("Descarga completa.");
 
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            // Abrir automáticamente
+            Process.Start(new ProcessStartInfo
             {
                 FileName = sfd.FileName,
                 UseShellExecute = true
             });
         }
+
 
 
         private void progressBar1_Click(object sender, EventArgs e)

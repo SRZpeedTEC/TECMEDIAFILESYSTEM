@@ -26,11 +26,25 @@ public class DocumentsController : ControllerBase
     }
 
     [HttpGet("documents/{name}")]
-    public async Task<IActionResult> Download(string name, CancellationToken ct)
+    public async Task Download(string name, CancellationToken ct)
     {
-        var bytes = await _svc.GetDocumentAsync(name, ct);
-        return bytes is null ? NotFound()
-                             : File(bytes, "application/pdf", name);
+        // 1) Validar existencia
+        if (!_svc.Exists(name))
+        {
+            Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
+
+        // 2) Cabeceras HTTP
+        Response.ContentType = "application/pdf";
+        Response.ContentLength = _svc.GetFileSize(name);
+
+        // 3) Stream de bloques al cliente según se reconstruyen
+        await foreach (var chunk in _svc.StreamDocumentAsync(name, ct))
+        {
+            await Response.Body.WriteAsync(chunk, ct);
+            await Response.Body.FlushAsync(ct);
+        }
     }
 
     [HttpDelete("documents/{name}")]
